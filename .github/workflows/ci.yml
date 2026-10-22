@@ -16,8 +16,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  quality-gate:
-    name: Quality gate
+  validate:
+    name: Validation
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -32,11 +32,21 @@ jobs:
           cache: npm
       - name: Install locked dependencies
         run: npm ci
-      - name: Check types, lint, formatting, unit tests, puzzle data and production build
-        run: npm run verify
+      - name: Type check
+        run: npm run typecheck
+      - name: Lint and formatting
+        run: |
+          npm run lint
+          npm run format:check
+      - name: Unit tests
+        run: npm test
+      - name: Puzzle data
+        run: npm run validate:data
+      - name: Build
+        run: npm run build
       - name: Install Chromium and Linux dependencies
         run: npx playwright install --with-deps chromium
-      - name: Run desktop and mobile browser tests headlessly
+      - name: Playwright tests
         run: env -u PWDEBUG -u HEADED npm run test:e2e
       - name: Keep browser failure evidence
         if: failure()
