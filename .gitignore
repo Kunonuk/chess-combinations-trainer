@@ -1,0 +1,14 @@
+node_modules/
+dist/
+coverage/
+playwright-report/
+test-results/
+.superpowers/
+.env*
+!.env.example
+.DS_Store
+*.pdf
+*.bundle
+private/
+.venv/
+__pycache__/

@@ -1,0 +1,13 @@
+{
+  "name": "chess-combinations-trainer",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.15.0 <25",
+    "npm": ">=11 <12"
+  },
+  "scripts": {
+    "about": "node --version"
+  }
+}
