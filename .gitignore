@@ -12,3 +12,4 @@ test-results/
 private/
 .venv/
 __pycache__/
+src/data/private/
