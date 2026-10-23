@@ -3,6 +3,7 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import App from '../../src/App.tsx';
 import { PROGRESS_KEY } from '../../src/services/progress.ts';
 import { bookPackFixture } from '../fixtures/bookPack.ts';
+import { analysisFixture } from '../fixtures/puzzles.ts';
 import { moveInStudy, uploadStudyJSON } from '../support/app.ts';
 
 vi.mock('../../src/data/catalogue.ts', async () => {
@@ -237,4 +238,67 @@ describe('private pack imports', () => {
     );
     expect(screen.queryByText(/Hint 1:/)).not.toBeInTheDocument();
   });
+});
+
+it('keeps a source-error study available and excludes it from scored totals', () => {
+  const pack = bookPackFixture();
+  const study = analysisFixture();
+  study.source = { ...pack.puzzles[0]!.source, exercise: 2 };
+  study.stage = pack.puzzles[0]!.stage;
+  study.chapter = pack.puzzles[0]!.chapter;
+  pack.puzzles.push(study);
+  localStorage.setItem(IMPORT_KEY, JSON.stringify(pack));
+  localStorage.setItem(
+    PROGRESS_KEY,
+    JSON.stringify({
+      version: 1,
+      collections: { 'ivashchenko-1a': { '2': { completed: true, firstTry: true } } },
+      location: { collection: 'ivashchenko-1a', puzzle: 2 },
+    }),
+  );
+  render(<App />);
+  expect(screen.getByRole('heading', { name: 'Study the source error' })).toBeInTheDocument();
+  expect(screen.getByRole('note', { name: 'Source note' })).toHaveTextContent(
+    'synthetic source instruction',
+  );
+  expect(screen.getByRole('progressbar', { name: 'Collection progress' })).toHaveAttribute(
+    'max',
+    '2',
+  );
+  expect(screen.getByRole('progressbar', { name: 'Collection progress' })).toHaveAttribute(
+    'value',
+    '0',
+  );
+  const options = within(screen.getByLabelText('Exercise', { exact: true }));
+  expect(options.getByRole('option', { name: '#2 · source note' })).toBeInTheDocument();
+  expect(screen.getByLabelText('Exercise', { exact: true })).toHaveValue('2');
+  expect(screen.getByRole('button', { name: 'Hint' })).toBeDisabled();
+  expect(screen.getByText('Source note · not scored')).toBeInTheDocument();
+  const next = screen.getByRole('button', { name: /Play next move/ });
+  fireEvent.click(next);
+  fireEvent.click(next);
+  expect(next).toBeDisabled();
+  expect(screen.getByTestId('square-e5')).toHaveAttribute('aria-label', 'e5 Black pawn');
+  fireEvent.click(screen.getByRole('button', { name: 'Retry exercise' }));
+  expect(screen.getByRole('button', { name: 'Hint' })).toBeDisabled();
+  expect(screen.getByTestId('square-e2')).toHaveAttribute('aria-label', 'e2 White pawn');
+});
+
+it('numbers a Black-start history using the FEN fullmove number', () => {
+  localStorage.setItem(IMPORT_KEY, JSON.stringify(bookPackFixture()));
+  render(<App />);
+  moveInStudy('d8', 'h4');
+  expect(
+    within(screen.getByLabelText('Move history')).getByText('2... Qh4#', { exact: true }),
+  ).toBeInTheDocument();
+});
+
+it('increments White-start history numbers from the source FEN', () => {
+  render(<App />);
+  moveInStudy('a2', 'e6');
+  moveInStudy('f7', 'f8');
+  const history = within(screen.getByLabelText('Move history'));
+  expect(history.getByText('18. Be6+', { exact: true })).toBeInTheDocument();
+  expect(history.getByText('Kd8', { exact: true })).toBeInTheDocument();
+  expect(history.getByText('19. Qf8#', { exact: true })).toBeInTheDocument();
 });

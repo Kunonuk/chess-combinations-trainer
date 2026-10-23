@@ -7,12 +7,13 @@ export interface Puzzle {
   id: number;
   stage: number;
   chapter: string;
-  objective: 'mate-in-1' | 'checkmate' | 'combination' | 'draw';
+  objective: 'mate-in-1' | 'checkmate' | 'combination' | 'draw' | 'analysis';
   description: string;
   fen: string;
   sideToMove: 'white' | 'black';
   solutions: Solution[];
   hints: string[];
+  notes?: string[];
   source: { book: string; exercise: number; page?: number; solutionPage?: number; url?: string };
   verification: { status: 'verified'; method: string; reviewer: string; evidence: string };
 }

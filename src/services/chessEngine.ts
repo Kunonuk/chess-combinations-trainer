@@ -11,13 +11,21 @@ export interface Session {
   candidates: number[];
 }
 export type Outcome = 'illegal' | 'incorrect' | 'continue' | 'solved' | 'blocked';
+function positionForSession(puzzle: Puzzle, session: Session): Chess {
+  const chess = new Chess(puzzle.fen);
+  for (const move of session.history) chess.move(move);
+  return chess;
+}
 export function createSession(puzzle: Puzzle): Session {
   return {
     fen: puzzle.fen,
     history: [],
     san: [],
-    status: 'playing',
-    feedback: 'Find the best move. Take your time.',
+    status: puzzle.objective === 'analysis' ? 'revealed' : 'playing',
+    feedback:
+      puzzle.objective === 'analysis'
+        ? 'Source discrepancy: study the annotated line. This exercise is not scored.'
+        : 'Find the best move. Take your time.',
     feedbackKind: 'neutral',
     lastMove: null,
     candidates: puzzle.solutions.map((_, i) => i),
@@ -29,7 +37,7 @@ export function attemptMove(
   uci: string,
 ): { session: Session; outcome: Outcome } {
   if (session.status !== 'playing') return { session, outcome: 'blocked' };
-  const chess = new Chess(session.fen);
+  const chess = positionForSession(puzzle, session);
   let move;
   try {
     if (!/^[a-h][1-8][a-h][1-8][qrbn]?$/.test(uci)) throw new Error('bad UCI');
@@ -50,7 +58,7 @@ export function attemptMove(
     };
   const history = [...session.history, uci],
     san = [...session.san, move.san];
-  const solved =
+  let solved =
     alternateMate || candidates.some((i) => puzzle.solutions[i]!.uci.length === history.length);
   let lastMove = { from: move.from, to: move.to };
   if (!solved) {
@@ -60,6 +68,10 @@ export function attemptMove(
     san.push(reply.san);
     lastMove = { from: reply.from, to: reply.to };
     candidates = candidates.filter((i) => puzzle.solutions[i]!.uci[ply + 1] === response);
+    solved =
+      puzzle.objective === 'draw' &&
+      chess.isDraw() &&
+      candidates.some((i) => puzzle.solutions[i]!.uci.length === history.length);
   }
   return {
     session: {
@@ -73,7 +85,9 @@ export function attemptMove(
       feedback: solved
         ? chess.isCheckmate()
           ? 'Correct! Checkmate.'
-          : 'Correct! You found the winning combination.'
+          : puzzle.objective === 'draw'
+            ? 'Correct! Draw.'
+            : 'Correct! You found the winning combination.'
         : 'Correct. Find the continuation.',
       feedbackKind: 'correct',
     },
@@ -92,7 +106,7 @@ export function advanceSolution(puzzle: Puzzle, session: Session): Session {
   if (session.status !== 'revealed') return session;
   const uci = puzzle.solutions[0]!.uci[session.history.length];
   if (!uci) return session;
-  const c = new Chess(session.fen),
+  const c = positionForSession(puzzle, session),
     move = c.move(uci);
   return {
     ...session,

@@ -1,7 +1,15 @@
+import bookData from '../../src/data/book.json' with { type: 'json' };
 import { bookPackFixture } from '../fixtures/bookPack.ts';
-import { expect, test, openPractice, square, importStudyJSON } from '../support/trainer.ts';
+import {
+  expect,
+  test,
+  openPractice,
+  square,
+  importStudyJSON,
+  expectBoardPosition,
+} from '../support/trainer.ts';
 
-test('imports a verified pack with numbered gaps and restores it after refresh', async ({
+test('imports numbered gaps and upgrades an older partial cache to the complete edition', async ({
   page,
 }) => {
   await openPractice(page);
@@ -18,7 +26,10 @@ test('imports a verified pack with numbered gaps and restores it after refresh',
   await page.reload();
   await expect(page.getByLabel('Collection', { exact: true })).toHaveValue('ivashchenko-1a');
   await expect(exercises).toHaveValue('3');
-  await expect(square(page, 'f7')).toHaveAttribute('aria-label', 'f7 White pawn');
+  await expect(page.getByLabel('All 719 book exercises').locator('option:enabled')).toHaveCount(
+    719,
+  );
+  await expectBoardPosition(page, bookData.puzzles[2]!.fen);
   // Rejected replacement must also leave the valid cached pack intact.
   const wrongEdition = bookPackFixture();
   wrongEdition.collection.sourceHash = '0'.repeat(64);
@@ -27,7 +38,7 @@ test('imports a verified pack with numbered gaps and restores it after refresh',
   await expect(exercises).toHaveValue('3');
   await page.reload();
   await expect(page.getByLabel('Collection', { exact: true })).toHaveValue('ivashchenko-1a');
-  await expect(square(page, 'f7')).toHaveAttribute('aria-label', 'f7 White pawn');
+  await expectBoardPosition(page, bookData.puzzles[2]!.fen);
 });
 
 test('malformed JSON leaves the current practice collection usable', async ({ page }) => {

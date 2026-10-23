@@ -82,7 +82,10 @@ function solution(value: unknown, puzzle: Pick<Puzzle, 'fen' | 'objective'>): So
   const s = object(value, 'solution');
   const uci = array(s.uci, 'UCI line', 199).map((m) => text(m, 'UCI', 5));
   const san = array(s.san, 'SAN line', 199).map((m) => text(m, 'SAN', 20));
-  if (!uci.length || uci.length % 2 !== 1)
+  if (
+    !uci.length ||
+    (uci.length % 2 !== 1 && puzzle.objective !== 'draw' && puzzle.objective !== 'analysis')
+  )
     throw new Error('Solution must have odd plies and end on the player move');
   if (uci.length !== san.length) throw new Error('SAN and UCI lengths differ');
   const chess = new Chess(puzzle.fen);
@@ -97,6 +100,8 @@ function solution(value: unknown, puzzle: Pick<Puzzle, 'fen' | 'objective'>): So
     }
     if (actual.san !== san[i])
       throw new Error(`SAN mismatch at ply ${i + 1}: expected ${actual.san}`);
+    if (i < uci.length - 1 && chess.isGameOver())
+      throw new Error('Solution continues after a terminal position');
   }
   if (puzzle.objective === 'mate-in-1' && uci.length !== 1)
     throw new Error('Mate in one must have one ply');
@@ -142,9 +147,15 @@ export function validatePack(value: unknown): PuzzlePack {
       throw new Error('Side to move mismatches FEN');
     const objective = choice(
       p.objective,
-      ['mate-in-1', 'checkmate', 'combination', 'draw'],
+      ['mate-in-1', 'checkmate', 'combination', 'draw', 'analysis'],
       'objective',
     );
+    const notes =
+      p.notes === undefined
+        ? []
+        : array(p.notes, 'source notes', 10).map((note) => text(note, 'source note'));
+    if (objective === 'analysis' && !notes.length)
+      throw new Error('Analysis study requires a source note');
     const v = object(p.verification, 'verification');
     if (v.status !== 'verified') throw new Error(`Exercise ${id} is not verified`);
     const s = object(p.source, 'source');
@@ -175,6 +186,7 @@ export function validatePack(value: unknown): PuzzlePack {
       objective,
       solutions,
       hints: array(p.hints, 'hints', 10).map((h) => text(h, 'hint')),
+      ...(notes.length ? { notes } : {}),
       source,
       verification: {
         status: 'verified',
