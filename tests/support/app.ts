@@ -1,13 +1,12 @@
-import { fireEvent, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
+import type { UserEvent } from '@testing-library/user-event';
 
-export function moveInStudy(from: string, to: string) {
-  fireEvent.click(screen.getByTestId('square-' + from));
-  fireEvent.click(screen.getByTestId('square-' + to));
+export async function moveInStudy(user: UserEvent, from: string, to: string) {
+  await user.click(screen.getByTestId('square-' + from));
+  await user.click(screen.getByTestId('square-' + to));
 }
 
-export function uploadStudyJSON(raw: string) {
+export async function uploadStudyJSON(user: UserEvent, raw: string) {
   const file = new File([raw], 'test-pack.json', { type: 'application/json' });
-  fireEvent.change(screen.getByLabelText('Import verified private pack'), {
-    target: { files: [file] },
-  });
+  await user.upload(screen.getByLabelText('Import verified private pack'), file);
 }

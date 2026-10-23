@@ -1,4 +1,15 @@
 import { defineConfig, devices } from '@playwright/test';
+import { appBasePath } from './app.config.ts';
+
+const baseURL = new URL(appBasePath, 'http://127.0.0.1:4173').href;
+
+export const webServer = {
+  command: 'npm run dev -- --port 4173 --strictPort',
+  url: baseURL,
+  reuseExistingServer: false,
+  timeout: 30000,
+};
+
 export default defineConfig({
   testDir: './tests/e2e',
   fullyParallel: true,
@@ -7,7 +18,7 @@ export default defineConfig({
   workers: 2,
   reporter: [['list'], ['html', { open: 'never' }]],
   use: {
-    baseURL: 'http://127.0.0.1:4173/chess-combinations-trainer/',
+    baseURL,
     headless: true,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
@@ -16,10 +27,5 @@ export default defineConfig({
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
     { name: 'mobile-chromium', use: { ...devices['Pixel 7'] } },
   ],
-  webServer: {
-    command: 'npm run dev -- --port 4173 --strictPort',
-    url: 'http://127.0.0.1:4173/chess-combinations-trainer/',
-    reuseExistingServer: false,
-    timeout: 30000,
-  },
+  webServer,
 });

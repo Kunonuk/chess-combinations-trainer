@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { analysisFixture, packFixture } from '../fixtures/puzzles.ts';
+import { analysisFixture, fixturePuzzle, packFixture } from '../fixtures/puzzles.ts';
 import { validatePack } from '../../src/services/puzzleValidation.ts';
 import { createSession, attemptMove, advanceSolution } from '../../src/services/chessEngine.ts';
 
@@ -7,7 +7,7 @@ describe('source-error studies', () => {
   it('retains a source note and a legal even-length illustrative line', () => {
     const pack = packFixture();
     pack.puzzles = [analysisFixture()];
-    const study = validatePack(pack).puzzles[0]!;
+    const study = fixturePuzzle(validatePack(pack));
     expect(study.notes).toEqual(analysisFixture().notes);
     expect(study.solutions[0]!.san).toEqual(['e4', 'e5']);
   });
@@ -33,8 +33,10 @@ describe('source-error studies', () => {
   it('rejects malformed source notes', () => {
     const pack = packFixture();
     pack.puzzles = [analysisFixture()];
-    const malformed = JSON.parse(JSON.stringify(pack));
-    malformed.puzzles[0].notes = [42];
+    const malformed = {
+      ...pack,
+      puzzles: pack.puzzles.map((puzzle) => ({ ...puzzle, notes: [42] })),
+    };
     expect(() => validatePack(malformed)).toThrow(/note/i);
   });
 });

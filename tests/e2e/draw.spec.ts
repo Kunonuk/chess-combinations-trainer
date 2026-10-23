@@ -1,34 +1,25 @@
-import { bookPackFixture } from '../fixtures/bookPack.ts';
-import { repetitionFixture } from '../fixtures/puzzles.ts';
-import { test, expect, openPractice, importStudyJSON, movePiece } from '../support/trainer.ts';
+import { repetitionBookPackFixture } from '../fixtures/bookPack.ts';
+import { fixturePuzzle } from '../fixtures/puzzles.ts';
+import { playerMoves } from '../data/solutions.ts';
+import { test, expect } from '../fixtures/trainer.ts';
 
 for (const side of ['white', 'black'] as const) {
   test(`completes an imported ${side} repetition draw with retained history`, async ({
-    page,
-    isMobile,
+    practice: trainer,
   }) => {
-    const pack = bookPackFixture();
-    const puzzle = repetitionFixture(side);
-    puzzle.source = { ...pack.puzzles[0]!.source, exercise: 1 };
-    pack.puzzles = [puzzle];
-    await openPractice(page);
-    await importStudyJSON(page, JSON.stringify(pack));
-    await expect(page.getByText(/Imported 1 verified book exercises/)).toBeVisible();
-    const moves = puzzle.solutions[0]!.uci;
-    for (let ply = 0; ply < moves.length; ply += 2) {
-      const uci = moves[ply]!;
-      await movePiece(page, uci.slice(0, 2), uci.slice(2, 4), isMobile);
-      await expect(page.locator('.feedback')).toContainText(
-        ply < 6 ? 'Find the continuation' : 'Correct! Draw.',
+    const pack = repetitionBookPackFixture(side);
+    await trainer.importStudyPack(pack);
+    await expect(trainer.notice()).toBeVisible();
+    await expect(trainer.notice()).toContainText('Imported 1 verified book exercises');
+    const moves = playerMoves(fixturePuzzle(pack));
+    for (const [index, uci] of moves.entries()) {
+      await trainer.board.playMove(uci);
+      await expect(trainer.feedback()).toContainText(
+        index < moves.length - 1 ? 'Find the continuation' : 'Correct! Draw.',
       );
     }
-    await expect(page.locator('.exercise-stats')).toContainText('Solved first try');
-    await expect(page.getByRole('progressbar', { name: 'Collection progress' })).toHaveAttribute(
-      'value',
-      '1',
-    );
-    await expect(page.getByLabel('Move history').locator('span').first()).toHaveText(
-      side === 'white' ? '1. Nf3' : '1... Nf6',
-    );
+    await expect(trainer.stats()).toContainText('Solved first try');
+    await expect(trainer.progress()).toHaveAttribute('value', '1');
+    await expect(trainer.historyMove(0)).toHaveText(side === 'white' ? '1. Nf3' : '1... Nf6');
   });
 }

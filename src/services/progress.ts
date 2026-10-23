@@ -39,7 +39,9 @@ export function parseProgress(raw: string | null): Progress {
       typeof root.collections === 'object' &&
       !Array.isArray(root.collections)
     ) {
-      for (const [collection, puzzles] of Object.entries(root.collections)) {
+      for (const [collection, puzzles] of Object.entries(
+        root.collections as Record<string, unknown>,
+      )) {
         if (
           !/^[a-z][a-z0-9-]{0,63}$/.test(collection) ||
           !puzzles ||
