@@ -102,3 +102,15 @@ describe('puzzle pack validation', () => {
     expect(c.isCheckmate()).toBe(true);
   });
 });
+it.each([
+  ['4k3/8/8/4P3/8/8/8/4K3 w - d6 0 1', 'e5d6', 'exd6'],
+  ['4k3/8/8/8/8/8/P7/4K3 w K - 0 1', 'e1g1', 'O-O'],
+])('rejects impossible special rights: %s', (fen, uci, san) => {
+  const p = packFixture();
+  const q = p.puzzles[0]!;
+  q.fen = fen;
+  q.sideToMove = 'white';
+  q.objective = 'combination';
+  q.solutions = [{ uci: [uci], san: [san], explanation: 'Invalid special metadata' }];
+  expect(() => validatePack(p)).toThrow(/en passant|castling/i);
+});
