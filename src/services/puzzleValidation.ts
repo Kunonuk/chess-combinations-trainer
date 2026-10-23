@@ -1,4 +1,4 @@
-import { Chess, validateFen } from 'chess.js';
+import { Chess, validateFen, type Square } from 'chess.js';
 import type { Puzzle, PuzzlePack, Solution } from '../types/puzzle.ts';
 
 function object(value: unknown, label: string): Record<string, unknown> {
@@ -41,6 +41,36 @@ function position(fen: string): Chess {
       throw new Error('FEN: too many pieces');
   }
   const fields = fen.split(' ');
+  const rights = fields[2]!;
+  for (const [right, king, rook, color] of [
+    ['K', 'e1', 'h1', 'w'],
+    ['Q', 'e1', 'a1', 'w'],
+    ['k', 'e8', 'h8', 'b'],
+    ['q', 'e8', 'a8', 'b'],
+  ] as const) {
+    if (
+      rights.includes(right) &&
+      (chess.get(king)?.type !== 'k' ||
+        chess.get(king)?.color !== color ||
+        chess.get(rook)?.type !== 'r' ||
+        chess.get(rook)?.color !== color)
+    )
+      throw new Error('FEN: impossible castling rights');
+  }
+  if (fields[3] !== '-') {
+    const ep = fields[3]!;
+    const pawnSquare = (ep[0] + (chess.turn() === 'w' ? '5' : '4')) as Square;
+    const origin = (ep[0] + (chess.turn() === 'w' ? '7' : '2')) as Square;
+    const pawn = chess.get(pawnSquare);
+    if (
+      chess.get(ep as Square) ||
+      chess.get(origin) ||
+      pawn?.type !== 'p' ||
+      pawn.color === chess.turn()
+    )
+      throw new Error('FEN: impossible en passant target');
+  }
+
   fields[1] = chess.turn() === 'w' ? 'b' : 'w';
   fields[3] = '-';
   if (new Chess(fields.join(' ')).isCheck())
