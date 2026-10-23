@@ -4,6 +4,15 @@ coverage/
 playwright-report/
 test-results/
 .superpowers/
+.agents/
+.codex/
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+docs/superpowers/
+/docs/PLAN.md
+/docs/DESIGN.md
+/docs/PROGRESS.md
 .env*
 !.env.example
 .DS_Store

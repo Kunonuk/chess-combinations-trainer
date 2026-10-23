@@ -1,5 +1,15 @@
 import { Chess } from 'chess.js';
 import type { PuzzlePack, Puzzle } from '../../src/types/puzzle.ts';
+
+// Keep packs mutable for invalid-data tests; guard indexed fixture assumptions at the point of use.
+export function fixturePuzzle(pack: PuzzlePack, index = 0): Puzzle {
+  const puzzle = pack.puzzles[index];
+  if (!puzzle) {
+    throw new Error(`Fixture "${pack.collection.id}" has no puzzle at index ${index}.`);
+  }
+  return puzzle;
+}
+
 // Deterministic chess-rule fixtures, not represented as exercises from the book.
 export function mateFixture(): Puzzle {
   const c = new Chess();

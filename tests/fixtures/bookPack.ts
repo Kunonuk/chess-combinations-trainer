@@ -1,5 +1,5 @@
 import type { PuzzlePack } from '../../src/types/puzzle.ts';
-import { mateFixture } from './puzzles.ts';
+import { fixturePuzzle, mateFixture, repetitionFixture } from './puzzles.ts';
 
 export function bookPackFixture(): PuzzlePack {
   const black = mateFixture();
@@ -41,4 +41,11 @@ export function bookPackFixture(): PuzzlePack {
       white,
     ],
   };
+}
+
+export function repetitionBookPackFixture(side: 'white' | 'black'): PuzzlePack {
+  const pack = bookPackFixture();
+  const puzzle = repetitionFixture(side);
+  puzzle.source = { ...fixturePuzzle(pack).source, exercise: 1 };
+  return { ...pack, puzzles: [puzzle] };
 }

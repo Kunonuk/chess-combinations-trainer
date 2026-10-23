@@ -20,5 +20,5 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-This license applies to original application code only. Book material is not
-licensed by this repository. Lichess practice data is CC0; see docs/LICENSING.md.
+This license applies to original application code only. Puzzle datasets and
+third-party dependencies retain their own terms.
