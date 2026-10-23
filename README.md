@@ -1,5 +1,20 @@
 # Chess Combinations Trainer
 
-A standalone, static chess puzzle trainer. Implementation is developed on local stacked feature branches. Only this initialization commit may be pushed automatically.
+A chess practice app for improving tactical skills and learning to recognize checkmates and winning combinations.
 
-The book PDF and intermediate scans must never be committed.
+Designed for short practice sessions: study a position, choose your move, and compare it with a verified solution.
+
+## Preview status
+
+The training interface is still under development. This version currently displays an introductory screen.
+
+## Run locally
+
+Requires Node.js 24.15 or newer within the 24.x series, and npm 11.
+
+```sh
+npm ci
+npm run dev
+```
+
+Open the local address shown in your terminal.
