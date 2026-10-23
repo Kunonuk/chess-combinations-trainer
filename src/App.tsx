@@ -1,4 +1,4 @@
-import { useState, type ChangeEvent } from 'react';
+import { useEffect, useState, type ChangeEvent } from 'react';
 import { Chess, type Square } from 'chess.js';
 import { ChessBoard } from './components/ChessBoard.tsx';
 import { bundledPacks, bookInfo } from './data/catalogue.ts';
@@ -23,6 +23,20 @@ import type { Puzzle, PuzzlePack } from './types/puzzle.ts';
 import './App.css';
 
 const IMPORT_KEY = 'combinations.private-pack.v1';
+const APPEARANCE_KEY = 'combinations.appearance.v1';
+function readAppearance() {
+  try {
+    const value: unknown = JSON.parse(window.localStorage.getItem(APPEARANCE_KEY) ?? 'null');
+    const object = value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
+    return {
+      dark: object.dark === true,
+      boardTheme: object.boardTheme === 'walnut' ? 'walnut' : 'forest',
+    };
+  } catch {
+    return { dark: false, boardTheme: 'forest' };
+  }
+}
+
 function validateBookPack(value: unknown): PuzzlePack {
   const pack = validatePack(value);
   if (
@@ -70,8 +84,16 @@ export default function App() {
   const [progress, setProgress] = useState(initial.progress);
   const [imported, setImported] = useState<PuzzlePack | null>(initial.imported);
   const [notice, setNotice] = useState<string | null>(initial.error);
-  const [dark, setDark] = useState(false);
-  const [boardTheme, setBoardTheme] = useState('forest');
+  const [appearance] = useState(readAppearance);
+  const [dark, setDark] = useState(appearance.dark);
+  const [boardTheme, setBoardTheme] = useState(appearance.boardTheme);
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(APPEARANCE_KEY, JSON.stringify({ dark, boardTheme }));
+    } catch {
+      /* Appearance still works when persistence is unavailable. */
+    }
+  }, [dark, boardTheme]);
   const [resetOpen, setResetOpen] = useState(false);
   const [studyRevision, setStudyRevision] = useState(0);
   const packs = imported
