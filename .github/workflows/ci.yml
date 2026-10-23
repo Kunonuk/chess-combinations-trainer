@@ -11,17 +11,18 @@ on:
 permissions:
   contents: read
 
+env:
+  CI: 'true'
+
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  validate:
-    name: Validation
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    env:
-      CI: 'true'
+  build:
+    name: Build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - name: Check out source
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
@@ -32,22 +33,80 @@ jobs:
           cache: npm
       - name: Install locked dependencies
         run: npm ci
-      - name: Type check
-        run: npm run typecheck
-      - name: Lint and formatting
-        run: |
-          npm run lint
-          npm run format:check
-      - name: Unit tests
-        run: npm test
-      - name: Puzzle data
-        run: npm run validate:data
       - name: Build
         run: npm run build
-      - name: Install Chromium and Linux dependencies
-        run: npx playwright install --with-deps chromium
-      - name: Playwright tests
-        run: env -u PWDEBUG -u HEADED npm run test:e2e
+      - name: Upload production build
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: production-build
+          path: dist/
+          if-no-files-found: error
+          retention-days: 1
+
+  checks:
+    name: Lint and checks
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out source
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - name: Use Node 24
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Formatting
+        run: npm run format:check
+      - name: Puzzle data
+        run: npm run validate:data
+
+  unit-tests:
+    name: Unit tests
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out source
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - name: Use Node 24
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Unit tests
+        run: npm test
+
+  ui-tests:
+    name: UI tests
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out source
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - name: Use Node 24
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Download production build
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+        with:
+          name: production-build
+          path: dist/
+      - name: Install headless Chromium and Linux dependencies
+        run: npx playwright install --with-deps --only-shell chromium
+      - name: UI tests
+        run: env -u PWDEBUG -u HEADED npm run test:e2e -- --config=playwright.ci.config.ts
       - name: Keep browser failure evidence
         if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

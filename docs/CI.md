@@ -1,38 +1,63 @@
-# Required CI validation
+# Build and test CI
 
-`CI / Validation` runs on every pull request targeting `main`, pushes to `main`, manual dispatches and merge-queue groups. There are no path filters or job-level conditions that could skip the required job.
+The `CI` workflow runs on pull requests targeting `main`, pushes to `main`, manual dispatches and merge-queue groups. Its four jobs appear separately in GitHub Actions:
 
-The job installs the committed lockfile with Node 24/npm 11, then runs:
+```mermaid
+flowchart LR
+    B[Build] --> L[Lint and checks]
+    B --> U[Unit tests]
+    B --> UI[UI tests]
+```
 
-| Step                | Command                                     |
-| ------------------- | ------------------------------------------- |
-| Type check          | `npm run typecheck`                         |
-| Lint and formatting | `npm run lint`, then `npm run format:check` |
-| Unit tests          | `npm test`                                  |
-| Puzzle data         | `npm run validate:data`                     |
-| Build               | `npm run build`                             |
-| Playwright tests    | `env -u PWDEBUG -u HEADED npm run test:e2e` |
+## Jobs
 
-Each step has its own result row in GitHub Actions. Playwright runs desktop and
-mobile Chromium headlessly, with zero retries. `npm run verify` remains the local
-shortcut for the first five checks.
+| Job             | Work                                                                                      |
+| --------------- | ----------------------------------------------------------------------------------------- |
+| Build           | `npm run build`: strict TypeScript check and production build; upload `dist/`.            |
+| Lint and checks | ESLint, formatting and puzzle-data validation.                                            |
+| Unit tests      | Run all Vitest tests, including component tests.                                          |
+| UI tests        | Download Build's artifact and run headless desktop/mobile Chromium against the built app. |
 
-Any failed command fails the job. Failed browser runs retain their HTML report, screenshots and traces for 7 days. An absent or empty test suite is not treated as passing. Public CI has no private book pack and validates the attributed CC0 dataset.
+The three downstream jobs each declare `needs: build`. They run in parallel after Build succeeds. A failed Build skips them; a failure in one downstream job does not cancel the other two.
 
-## Merge protection
+Each job checks out the same workflow revision and installs the committed lockfile with Node 24/npm 11. npm's download cache is shared through `actions/setup-node`; `node_modules` is installed separately for each runner. Ubuntu 24.04 is pinned to keep the runner platform consistent.
 
-`main` requires the check named **Validation**, provided by the GitHub Actions app. The source branch must be up to date with `main`. Protection applies to administrators; direct updates require a PR, but no additional reviewer approval is required. Force pushes and branch deletion are disabled.
+Build uploads an artifact named `production-build`, retained for one day. Missing build output fails the upload. UI tests download that artifact into `dist/` and use `playwright.ci.config.ts` to start Vite's production preview server. They do not rebuild or start the development server. A missing artifact fails the job.
 
-Workflow YAML alone cannot block merges: GitHub branch protection must require the check. The required check's name must remain unique and must be updated in the protection rule if the job is renamed. A missing, pending, failed or cancelled check blocks merging.
+Only UI tests install Playwright browser dependencies. The installer downloads Chromium's headless shell; desktop and mobile projects share that browser. Linux dependencies are still installed. Tests run with zero retries and preserve their HTML report, screenshots and traces for seven days on failure. Neither an empty test suite nor a failed command is treated as passing.
 
-## First publication
+Public CI validates the separate attributed CC0 practice collection. Private book packs are not supplied to the public workflow.
 
-Publish the workflow changes on `ci/required-quality-gate` and open or update its PR against `main`. The workflow will run on that PR. Wait for **Validate** to succeed, then merge using a merge commit. The renamed check needs a successful GitHub run after these workflow changes are published.
+## Required merge checks
 
-Existing stacked feature branches predate CI. When GitHub reports that a PR is behind `main`, update that feature branch from `main` and wait for CI to pass again. Do not bypass protection to merge a failing or untested change.
+Require these four exact check names from the GitHub Actions app:
 
-## Deployment
+- **Build**
+- **Lint and checks**
+- **Unit tests**
+- **UI tests**
 
-This workflow grants read-only repository permissions and does not publish the site. The separate Pages workflow on the deployment branch can be reviewed later. It must not reuse the required job name or deploy from pull requests. Deployment failures and test failures are separate concerns; passing tests remain mandatory before merging.
+Build must be required as well: GitHub accepts skipped required checks, and a failed prerequisite skips downstream jobs. None of these jobs has a job-level condition or path filter that could skip its work after a successful Build.
 
-GitHub references: [required status checks](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches#require-status-checks-before-merging), [branch-protection API](https://docs.github.com/en/rest/branches/branch-protection#update-branch-protection).
+Keep the existing requirements for an up-to-date source branch, administrator enforcement and a PR. No additional reviewer approval is required. Force pushes and branch deletion remain disabled.
+
+### Publishing this change
+
+Publish `ci/build-then-tests` and open its PR against `main`. After all four new checks report success, replace the old **Validation** requirement with the four names above in one protection-rule update. Keep **Validation** required until the new workflow is published; changing the names earlier would leave existing PRs waiting for checks that cannot run yet. The new PR will wait for the old check until that rule update is made.
+
+Job names must remain unique across workflows and match the protection rule exactly. If a feature PR is behind `main`, update its branch and wait for its checks again. Do not bypass required checks.
+
+## Local verification
+
+`npm run verify` remains the local shortcut for types, lint, formatting, unit tests, puzzle data and build. To test the resulting production build with the same configuration used by UI tests:
+
+```sh
+npm run build
+env -u PWDEBUG -u HEADED CI=true npm run test:e2e -- --config=playwright.ci.config.ts
+```
+
+The default `playwright.config.ts` still uses the local development server. Both configurations run headlessly and require port 4173 to be free.
+
+This workflow does not deploy the site. Deployment remains separate from the required merge checks.
+
+GitHub references: [job dependencies](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-jobs), [sharing build artifacts](https://docs.github.com/en/actions/tutorials/store-and-share-data), [required status checks](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches#require-status-checks-before-merging). Playwright reference: [headless-only browser installation](https://playwright.dev/docs/browsers#chromium-headless-shell).
