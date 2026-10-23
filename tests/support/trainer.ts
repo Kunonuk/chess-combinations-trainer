@@ -1,4 +1,5 @@
 import { expect, test as base, type Page } from '@playwright/test';
+import { Chess, type Square } from 'chess.js';
 
 export const test = base.extend<{ browserErrors: string[] }>({
   browserErrors: [
@@ -47,4 +48,18 @@ export async function importStudyJSON(page: Page, raw: string) {
     mimeType: 'application/json',
     buffer: Buffer.from(raw),
   });
+}
+
+export async function expectBoardPosition(page: Page, fen: string) {
+  const chess = new Chess(fen);
+  const names = { p: 'pawn', n: 'knight', b: 'bishop', r: 'rook', q: 'queen', k: 'king' };
+  const expected = Array.from({ length: 64 }, (_, index) => {
+    const square = (String.fromCharCode(97 + (index % 8)) +
+      String(8 - Math.floor(index / 8))) as Square;
+    const piece = chess.get(square);
+    return piece
+      ? `${square} ${piece.color === 'w' ? 'White' : 'Black'} ${names[piece.type]}`
+      : `${square} empty`;
+  });
+  await expect.poll(() => boardPosition(page)).toEqual(expected);
 }

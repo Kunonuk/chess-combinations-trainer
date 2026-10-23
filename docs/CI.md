@@ -26,7 +26,7 @@ Build uploads an artifact named `production-build`, retained for one day. Missin
 
 Only UI tests install Playwright browser dependencies. The installer downloads Chromium's headless shell; desktop and mobile projects share that browser. Linux dependencies are still installed. Tests run with zero retries and preserve their HTML report, screenshots and traces for seven days on failure. Neither an empty test suite nor a failed command is treated as passing.
 
-Public CI validates the separate attributed CC0 practice collection. Private book packs are not supplied to the public workflow.
+Public CI validates the complete bundled book collection in `src/data/book.json` and the separate attributed CC0 practice collection. The book audit requires all 719 original exercise IDs and checks every scored solution and unscored study line through the engine and playback. Source PDFs, scans, intermediate audit files and optional local packs are not supplied to the public workflow.
 
 ## Required merge checks
 
@@ -41,9 +41,9 @@ Build must be required as well: GitHub accepts skipped required checks, and a fa
 
 Keep the existing requirements for an up-to-date source branch, administrator enforcement and a PR. No additional reviewer approval is required. Force pushes and branch deletion remain disabled.
 
-### Publishing this change
+### Changing required check names
 
-Publish `ci/build-then-tests` and open its PR against `main`. After all four new checks report success, replace the old **Validation** requirement with the four names above in one protection-rule update. Keep **Validation** required until the new workflow is published; changing the names earlier would leave existing PRs waiting for checks that cannot run yet. The new PR will wait for the old check until that rule update is made.
+Workflow jobs and repository branch-protection requirements are configured separately. When replacing an older check name, publish the updated workflow first and wait for all new checks to report. Then replace the old requirement with the new exact names in one protection-rule update. Keeping the old requirement until the new workflow is available avoids PRs waiting for checks that cannot run yet.
 
 Job names must remain unique across workflows and match the protection rule exactly. If a feature PR is behind `main`, update its branch and wait for its checks again. Do not bypass required checks.
 

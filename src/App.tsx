@@ -63,7 +63,9 @@ function initialState(): { progress: Progress; imported: PuzzlePack | null; erro
     let imported = null;
     if (raw && raw.length <= 5 * 1024 * 1024) {
       try {
-        imported = validateBookPack(JSON.parse(raw));
+        const cached = validateBookPack(JSON.parse(raw));
+        const bundled = bundledPacks.find((pack) => pack.collection.id === cached.collection.id);
+        if (!bundled || cached.puzzles.length >= bundled.puzzles.length) imported = cached;
       } catch {
         /* Invalid stored packs never enter the catalogue. */
       }
@@ -163,9 +165,12 @@ export default function App() {
     pack && puzzle
       ? (progress.collections[pack.collection.id]?.[puzzle.id] ?? emptyPuzzleProgress())
       : emptyPuzzleProgress();
+  const scoredCount = pack?.puzzles.filter((p) => p.objective !== 'analysis').length ?? 0;
   const completed =
-    pack?.puzzles.filter((p) => progress.collections[pack.collection.id]?.[p.id]?.completed)
-      .length ?? 0;
+    pack?.puzzles.filter(
+      (p) =>
+        p.objective !== 'analysis' && progress.collections[pack.collection.id]?.[p.id]?.completed,
+    ).length ?? 0;
   return (
     <div className={`app ${dark ? 'dark' : ''} board-theme-${boardTheme}`}>
       <header className="site-header">
@@ -266,12 +271,12 @@ export default function App() {
                 </strong>
                 <p>
                   {pack.collection.kind === 'book'
-                    ? `${pack.puzzles.length} of ${bookInfo.total} book exercises verified and available.`
+                    ? `${pack.puzzles.length} of ${bookInfo.total} book exercises available.`
                     : 'These CC0 puzzles are independent practice exercises. They are not exercises from the book.'}
                 </p>
                 <span className="source-dot" />{' '}
                 {pack.collection.kind === 'book'
-                  ? 'Verified against printed solutions'
+                  ? 'Reviewed diagrams and checked training lines'
                   : 'Attributed CC0 source'}
               </div>
               {puzzle && (
@@ -309,14 +314,16 @@ export default function App() {
                     onChange={(e) => navigate(pack, Number(e.target.value))}
                   >
                     {Array.from({ length: pack.collection.total }, (_, i) => i + 1).map((id) => {
-                      const exists = pack.puzzles.some((p) => p.id === id);
+                      const exercise = pack.puzzles.find((p) => p.id === id);
                       return (
-                        <option key={id} value={id} disabled={!exists}>
+                        <option key={id} value={id} disabled={!exercise}>
                           #{id}
-                          {exists
-                            ? progress.collections[pack.collection.id]?.[id]?.completed
-                              ? ' · completed'
-                              : ''
+                          {exercise
+                            ? exercise.objective === 'analysis'
+                              ? ' · source note'
+                              : progress.collections[pack.collection.id]?.[id]?.completed
+                                ? ' · completed'
+                                : ''
                             : ' · unavailable'}
                         </option>
                       );
@@ -327,18 +334,19 @@ export default function App() {
               <div className="progress-card">
                 <div>
                   <strong>{completed}</strong>
-                  <span> / {pack.puzzles.length} available solved</span>
+                  <span> / {scoredCount} available solved</span>
                 </div>
                 <progress
                   value={completed}
-                  max={Math.max(1, pack.puzzles.length)}
+                  max={Math.max(1, scoredCount)}
                   aria-label="Collection progress"
                 />
                 <div className="chapter-progress">
                   {Array.from(new Set(pack.puzzles.map((p) => `${p.stage}|${p.chapter}`))).map(
                     (key) => {
                       const rows = pack.puzzles.filter((p) => `${p.stage}|${p.chapter}` === key);
-                      const done = rows.filter(
+                      const scored = rows.filter((p) => p.objective !== 'analysis');
+                      const done = scored.filter(
                         (p) => progress.collections[pack.collection.id]?.[p.id]?.completed,
                       ).length;
                       return (
@@ -346,9 +354,7 @@ export default function App() {
                           <span>
                             Stage {rows[0]?.stage} · {rows[0]?.chapter}
                           </span>
-                          <b>
-                            {done}/{rows.length}
-                          </b>
+                          <b>{scored.length ? `${done}/${scored.length}` : 'Study only'}</b>
                         </div>
                       );
                     },
@@ -362,8 +368,8 @@ export default function App() {
               Book coverage <span>{bookCount} / 719</span>
             </summary>
             <p>
-              Only verified positions can be opened. Unavailable exercises stay visible in the
-              catalogue.
+              Available positions can be opened. Source errors are marked as unscored studies.
+              Unavailable exercises stay visible in the catalogue.
             </p>
             <label className="field-label" htmlFor="book-catalogue">
               All 719 book exercises
@@ -479,17 +485,26 @@ function Study({ puzzle, progress, record, index, total, onPrevious, onNext }: S
           : 'Look for checks, captures, and threats.';
   return (
     <div className="exercise-area">
+      {puzzle.notes && (
+        <div className="notice" role="note" aria-label="Source note">
+          {puzzle.notes.map((note) => (
+            <p key={note}>{note}</p>
+          ))}
+        </div>
+      )}
       <div className="exercise-heading">
         <div>
           <span className="exercise-number">EXERCISE {String(puzzle.id).padStart(3, '0')}</span>
           <h2>
-            {puzzle.objective === 'mate-in-1'
-              ? 'Checkmate in one'
-              : puzzle.objective === 'checkmate'
-                ? 'Find the checkmate'
-                : puzzle.objective === 'draw'
-                  ? 'Find the draw'
-                  : 'Find the combination'}
+            {puzzle.objective === 'analysis'
+              ? 'Study the source error'
+              : puzzle.objective === 'mate-in-1'
+                ? 'Checkmate in one'
+                : puzzle.objective === 'checkmate'
+                  ? 'Find the checkmate'
+                  : puzzle.objective === 'draw'
+                    ? 'Find the draw'
+                    : 'Find the combination'}
           </h2>
         </div>
         <span className="turn-badge">
@@ -556,7 +571,9 @@ function Study({ puzzle, progress, record, index, total, onPrevious, onNext }: S
       </div>
       {session.status === 'revealed' && (
         <div className="solution-panel">
-          <strong>Study the solution</strong>
+          <strong>
+            {puzzle.objective === 'analysis' ? 'Study the source error' : 'Study the solution'}
+          </strong>
           <p>{puzzle.solutions[0]?.explanation}</p>
           <button
             onClick={() => setSession(advanceSolution(puzzle, session))}
@@ -568,23 +585,30 @@ function Study({ puzzle, progress, record, index, total, onPrevious, onNext }: S
       )}
       {session.san.length > 0 && (
         <div className="move-history" aria-label="Move history">
-          {session.san.map((san, i) => (
-            <span key={`${i}:${san}`}>
-              {i % 2 === 0 ? `${Math.floor(i / 2) + 1}. ` : ''}
-              {san}
-            </span>
-          ))}
+          {session.san.map((san, i) => {
+            const ply = i + (puzzle.sideToMove === 'black' ? 1 : 0);
+            const number = Number(puzzle.fen.split(' ')[5]) + Math.floor(ply / 2);
+            const prefix = ply % 2 === 0 ? `${number}. ` : i === 0 ? `${number}... ` : '';
+            return (
+              <span key={`${i}:${san}`}>
+                {prefix}
+                {san}
+              </span>
+            );
+          })}
         </div>
       )}
       <div className="exercise-stats">
         <span>{progress.attempts} attempts</span>
         <span>{progress.hints} hints</span>
         <span>
-          {progress.completed
-            ? progress.firstTry
-              ? '✓ Solved first try'
-              : '✓ Completed'
-            : 'In progress'}
+          {puzzle.objective === 'analysis'
+            ? 'Source note · not scored'
+            : progress.completed
+              ? progress.firstTry
+                ? '✓ Solved first try'
+                : '✓ Completed'
+              : 'In progress'}
         </span>
       </div>
       <nav className="exercise-navigation" aria-label="Exercise navigation">
