@@ -161,6 +161,7 @@ export function ChessBoard({
       <div className="chess-board-edge chess-board-edge-left">{rankCoordinates}</div>
       <div
         ref={board}
+        data-testid="chessboard"
         role="grid"
         aria-label="Chessboard"
         aria-disabled={disabled}

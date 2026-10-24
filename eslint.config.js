@@ -12,7 +12,17 @@ export default tseslint.config(
     ],
   },
   js.configs.recommended,
-  ...tseslint.configs.recommended,
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: tseslint.configs.recommendedTypeChecked,
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    rules: { '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }] },
+  },
   {
     files: ['**/*.{js,ts,tsx}'],
     languageOptions: {
@@ -36,6 +46,5 @@ export default tseslint.config(
         PointerEvent: 'readonly',
       },
     },
-    rules: { '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }] },
   },
 );
