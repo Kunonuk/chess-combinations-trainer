@@ -13,6 +13,7 @@ docs/superpowers/
 /docs/PLAN.md
 /docs/DESIGN.md
 /docs/PROGRESS.md
+/docs/CI.md
 .env*
 !.env.example
 .DS_Store
