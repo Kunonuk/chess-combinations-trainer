@@ -83,11 +83,15 @@ jobs:
       - name: Unit tests
         run: npm test
 
-  ui-tests:
-    name: UI tests
+  ui-test-shards:
+    name: UI tests (shard ${{ matrix.shard }}/3)
     needs: build
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
     steps:
       - name: Check out source
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
@@ -106,14 +110,26 @@ jobs:
       - name: Install headless Chromium and Linux dependencies
         run: npx playwright install --with-deps --only-shell chromium
       - name: UI tests
-        run: env -u PWDEBUG -u HEADED npm run test:e2e -- --config=playwright.ci.config.ts
+        run: env -u PWDEBUG -u HEADED npm run test:e2e -- --config=playwright.ci.config.ts --shard=${{ matrix.shard }}/3
       - name: Keep browser failure evidence
         if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: browser-failure-evidence
+          name: browser-failure-evidence-shard-${{ matrix.shard }}
           path: |
             playwright-report/
             test-results/
           if-no-files-found: ignore
           retention-days: 7
+
+  ui-tests:
+    name: UI tests
+    needs: ui-test-shards
+    if: ${{ always() }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 1
+    steps:
+      - name: Require every UI test shard to pass
+        env:
+          UI_TEST_RESULT: ${{ needs.ui-test-shards.result }}
+        run: test "$UI_TEST_RESULT" = success
