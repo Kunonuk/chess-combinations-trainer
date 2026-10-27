@@ -1,15 +1,15 @@
-import { useRef, useState } from 'react';
-import { Chess, type Square } from 'chess.js';
-import { useDialogFocus } from '../hooks/useDialogFocus.ts';
-import { ChessBoard } from './ChessBoard.tsx';
+import { useRef, useState } from "react";
+import { Chess, type Square } from "chess.js";
+import { useDialogFocus } from "../hooks/useDialogFocus.ts";
+import { ChessBoard } from "./ChessBoard.tsx";
 import {
   createSession,
   attemptMove,
   revealSolution,
   advanceSolution,
-} from '../services/chessEngine.ts';
-import type { ProgressEvent, PuzzleProgress } from '../services/progress.ts';
-import type { Puzzle } from '../types/puzzle.ts';
+} from "../services/chessEngine.ts";
+import type { ProgressEvent, PuzzleProgress } from "../services/progress.ts";
+import type { Puzzle } from "../types/puzzle.ts";
 
 interface StudyProps {
   puzzle: Puzzle;
@@ -20,23 +20,35 @@ interface StudyProps {
   onPrevious: () => void;
   onNext: () => void;
 }
-export function Study({ puzzle, progress, record, index, total, onPrevious, onNext }: StudyProps) {
+export function Study({
+  puzzle,
+  progress,
+  record,
+  index,
+  total,
+  onPrevious,
+  onNext,
+}: StudyProps) {
   const [session, setSession] = useState(() => createSession(puzzle));
-  const [orientation, setOrientation] = useState<'white' | 'black'>('white');
+  const [orientation, setOrientation] = useState<"white" | "black">("white");
   const [hintLevel, setHintLevel] = useState(0);
-  const [promotion, setPromotion] = useState<{ from: Square; to: Square } | null>(null);
+  const [promotion, setPromotion] = useState<{
+    from: Square;
+    to: Square;
+  } | null>(null);
   const promotionDialog = useRef<HTMLDivElement>(null);
   useDialogFocus(promotionDialog, () => setPromotion(null), promotion !== null);
   function submit(uci: string) {
     const result = attemptMove(puzzle, session, uci);
-    record('attempt');
-    if (result.outcome === 'incorrect' || result.outcome === 'illegal') record('mistake');
-    if (result.outcome === 'solved') record('solve');
+    record("attempt");
+    if (result.outcome === "incorrect" || result.outcome === "illegal")
+      record("mistake");
+    if (result.outcome === "solved") record("solve");
     setSession(result.session);
   }
   function move(from: Square, to: Square) {
     const piece = new Chess(session.fen).get(from);
-    if (piece?.type === 'p' && (to[1] === '1' || to[1] === '8')) {
+    if (piece?.type === "p" && (to[1] === "1" || to[1] === "8")) {
       setPromotion({ from, to });
       return;
     }
@@ -45,7 +57,9 @@ export function Study({ puzzle, progress, record, index, total, onPrevious, onNe
   const candidate = puzzle.solutions[session.candidates[0] ?? 0];
   const hintUci = candidate?.uci[session.history.length];
   const hintSquare =
-    hintLevel > puzzle.hints.length && hintUci ? (hintUci.slice(0, 2) as Square) : null;
+    hintLevel > puzzle.hints.length && hintUci
+      ? (hintUci.slice(0, 2) as Square)
+      : null;
   const hint =
     hintLevel === 0
       ? null
@@ -53,11 +67,16 @@ export function Study({ puzzle, progress, record, index, total, onPrevious, onNe
         ? puzzle.hints[hintLevel - 1]
         : hintSquare
           ? `Look closely at the piece on ${hintSquare}.`
-          : 'Look for checks, captures, and threats.';
+          : "Look for checks, captures, and threats.";
   return (
     <div className="exercise-area">
       {puzzle.notes && (
-        <div data-testid="source-note" className="notice" role="note" aria-label="Source note">
+        <div
+          data-testid="source-note"
+          className="notice"
+          role="note"
+          aria-label="Source note"
+        >
           {puzzle.notes.map((note) => (
             <p key={note}>{note}</p>
           ))}
@@ -66,23 +85,23 @@ export function Study({ puzzle, progress, record, index, total, onPrevious, onNe
       <div className="exercise-heading">
         <div>
           <span data-testid="exercise-number" className="exercise-number">
-            EXERCISE {String(puzzle.id).padStart(3, '0')}
+            EXERCISE {String(puzzle.id).padStart(3, "0")}
           </span>
           <h2 data-testid="study-heading">
-            {puzzle.objective === 'analysis'
-              ? 'Study the source error'
-              : puzzle.objective === 'mate-in-1'
-                ? 'Checkmate in one'
-                : puzzle.objective === 'checkmate'
-                  ? 'Find the checkmate'
-                  : puzzle.objective === 'draw'
-                    ? 'Find the draw'
-                    : 'Find the combination'}
+            {puzzle.objective === "analysis"
+              ? "Study the source error"
+              : puzzle.objective === "mate-in-1"
+                ? "Checkmate in one"
+                : puzzle.objective === "checkmate"
+                  ? "Find the checkmate"
+                  : puzzle.objective === "draw"
+                    ? "Find the draw"
+                    : "Find the combination"}
           </h2>
         </div>
         <span className="turn-badge">
           <span className={`turn-dot ${puzzle.sideToMove}`} />
-          {puzzle.sideToMove === 'white' ? 'White' : 'Black'} to move
+          {puzzle.sideToMove === "white" ? "White" : "Black"} to move
         </span>
       </div>
       <div className="board-shell">
@@ -90,7 +109,7 @@ export function Study({ puzzle, progress, record, index, total, onPrevious, onNe
           fen={session.fen}
           orientation={orientation}
           onMove={move}
-          disabled={session.status !== 'playing' || promotion !== null}
+          disabled={session.status !== "playing" || promotion !== null}
           lastMove={session.lastMove}
           hintSquare={hintSquare}
         />
@@ -101,7 +120,9 @@ export function Study({ puzzle, progress, record, index, total, onPrevious, onNe
         role="status"
         aria-live="polite"
       >
-        <span aria-hidden="true">{session.status === 'solved' ? '✓' : '◇'}</span>{' '}
+        <span aria-hidden="true">
+          {session.status === "solved" ? "✓" : "◇"}
+        </span>{" "}
         {session.feedback || puzzle.description}
       </div>
       {hint && (
@@ -114,7 +135,7 @@ export function Study({ puzzle, progress, record, index, total, onPrevious, onNe
           data-testid="retry-exercise"
           aria-label="Retry exercise"
           onClick={() => {
-            record('retry');
+            record("retry");
             setSession(createSession(puzzle));
             setHintLevel(0);
           }}
@@ -125,17 +146,19 @@ export function Study({ puzzle, progress, record, index, total, onPrevious, onNe
           data-testid="show-hint"
           aria-label="Hint"
           onClick={() => {
-            record('hint');
+            record("hint");
             setHintLevel((h) => Math.min(h + 1, puzzle.hints.length + 1));
           }}
-          disabled={session.status !== 'playing'}
+          disabled={session.status !== "playing"}
         >
           ◇ Hint
         </button>
         <button
           data-testid="flip-board"
           aria-label="Flip board"
-          onClick={() => setOrientation((o) => (o === 'white' ? 'black' : 'white'))}
+          onClick={() =>
+            setOrientation((o) => (o === "white" ? "black" : "white"))
+          }
         >
           ⇅ Flip
         </button>
@@ -143,35 +166,45 @@ export function Study({ puzzle, progress, record, index, total, onPrevious, onNe
           data-testid="show-solution"
           className="solution-button"
           onClick={() => {
-            record('reveal');
+            record("reveal");
             setSession(revealSolution(puzzle, session));
           }}
-          disabled={session.status === 'revealed'}
+          disabled={session.status === "revealed"}
         >
           Show solution
         </button>
       </div>
-      {session.status === 'revealed' && (
+      {session.status === "revealed" && (
         <div data-testid="solution-panel" className="solution-panel">
           <strong>
-            {puzzle.objective === 'analysis' ? 'Study the source error' : 'Study the solution'}
+            {puzzle.objective === "analysis"
+              ? "Study the source error"
+              : "Study the solution"}
           </strong>
           <p>{puzzle.solutions[0]?.explanation}</p>
           <button
             data-testid="play-next-move"
             onClick={() => setSession(advanceSolution(puzzle, session))}
-            disabled={session.history.length >= (puzzle.solutions[0]?.uci.length ?? 0)}
+            disabled={
+              session.history.length >= (puzzle.solutions[0]?.uci.length ?? 0)
+            }
           >
             Play next move →
           </button>
         </div>
       )}
       {session.san.length > 0 && (
-        <div data-testid="move-history" className="move-history" aria-label="Move history">
+        <div
+          data-testid="move-history"
+          className="move-history"
+          aria-label="Move history"
+        >
           {session.san.map((san, i) => {
-            const ply = i + (puzzle.sideToMove === 'black' ? 1 : 0);
-            const number = Number(puzzle.fen.split(' ')[5]) + Math.floor(ply / 2);
-            const prefix = ply % 2 === 0 ? `${number}. ` : i === 0 ? `${number}... ` : '';
+            const ply = i + (puzzle.sideToMove === "black" ? 1 : 0);
+            const number =
+              Number(puzzle.fen.split(" ")[5]) + Math.floor(ply / 2);
+            const prefix =
+              ply % 2 === 0 ? `${number}. ` : i === 0 ? `${number}... ` : "";
             return (
               <span data-testid="history-move" key={`${i}:${san}`}>
                 {prefix}
@@ -185,13 +218,13 @@ export function Study({ puzzle, progress, record, index, total, onPrevious, onNe
         <span>{progress.attempts} attempts</span>
         <span>{progress.hints} hints</span>
         <span>
-          {puzzle.objective === 'analysis'
-            ? 'Source note · not scored'
+          {puzzle.objective === "analysis"
+            ? "Source note · not scored"
             : progress.completed
               ? progress.firstTry
-                ? '✓ Solved first try'
-                : '✓ Completed'
-              : 'In progress'}
+                ? "✓ Solved first try"
+                : "✓ Completed"
+              : "In progress"}
         </span>
       </div>
       <nav className="exercise-navigation" aria-label="Exercise navigation">
@@ -218,12 +251,14 @@ export function Study({ puzzle, progress, record, index, total, onPrevious, onNe
       </nav>
       <p className="source-note">
         {puzzle.source.book} · Exercise {puzzle.source.exercise}
-        {puzzle.source.page ? ` · p. ${puzzle.source.page}` : ''}
-        {puzzle.source.solutionPage ? ` · solution p. ${puzzle.source.solutionPage}` : ''}
+        {puzzle.source.page ? ` · p. ${puzzle.source.page}` : ""}
+        {puzzle.source.solutionPage
+          ? ` · solution p. ${puzzle.source.solutionPage}`
+          : ""}
         {puzzle.source.url && (
           <>
-            {' '}
-            ·{' '}
+            {" "}
+            ·{" "}
             <a href={puzzle.source.url} target="_blank" rel="noreferrer">
               Source ↗
             </a>
@@ -244,7 +279,7 @@ export function Study({ puzzle, progress, record, index, total, onPrevious, onNe
             <h2 id="promotion-title">Choose your promotion</h2>
             <p>Which piece should your pawn become?</p>
             <div className="promotion-options">
-              {(['q', 'r', 'b', 'n'] as const).map((piece) => (
+              {(["q", "r", "b", "n"] as const).map((piece) => (
                 <button
                   key={piece}
                   data-testid={`promote-${piece}`}
@@ -253,7 +288,7 @@ export function Study({ puzzle, progress, record, index, total, onPrevious, onNe
                     setPromotion(null);
                   }}
                 >
-                  {{ q: 'Queen', r: 'Rook', b: 'Bishop', n: 'Knight' }[piece]}
+                  {{ q: "Queen", r: "Rook", b: "Bishop", n: "Knight" }[piece]}
                 </button>
               ))}
             </div>

@@ -1,5 +1,5 @@
-import { fireEvent, screen } from '@testing-library/react';
-import { vi } from 'vitest';
+import { fireEvent, screen } from "@testing-library/react";
+import { vi } from "vitest";
 
 interface PointerOptions {
   pointerType?: string;
@@ -20,7 +20,12 @@ export function firePointer(
   type: string,
   x: number,
   y: number,
-  { pointerType = 'mouse', pointerId = 1, isPrimary = true, button = 0 }: PointerOptions = {},
+  {
+    pointerType = "mouse",
+    pointerId = 1,
+    isPrimary = true,
+    button = 0,
+  }: PointerOptions = {},
 ) {
   const event = new MouseEvent(type, {
     bubbles: true,
@@ -42,8 +47,8 @@ export function mockBoardBounds({
   width = 800,
   height = 800,
 }: BoardBounds = {}) {
-  const board = screen.getByRole('grid', { name: 'Chessboard' });
-  vi.spyOn(board, 'getBoundingClientRect').mockReturnValue({
+  const board = screen.getByRole("grid", { name: "Chessboard" });
+  vi.spyOn(board, "getBoundingClientRect").mockReturnValue({
     x: left,
     y: top,
     left,

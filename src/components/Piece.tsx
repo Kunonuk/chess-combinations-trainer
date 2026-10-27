@@ -1,5 +1,5 @@
-import type { Color, PieceSymbol } from 'chess.js';
-import type { ReactNode } from 'react';
+import type { Color, PieceSymbol } from "chess.js";
+import type { ReactNode } from "react";
 
 export interface PieceProps {
   type: PieceSymbol;
@@ -18,8 +18,17 @@ const SHAPES: Record<PieceSymbol, ReactNode> = {
   n: (
     <>
       <path d="M26 58c1-12 10-16 10-24l-9 3-5-6 12-15 1-5 8 7h5l7 11 4 11-8 4-8-6c-2 9 5 12 7 20Z" />
-      <path className="chess-piece-detail" d="M35 20c11 3 9 13 8 18M27 31l7-2M29 53h17" />
-      <circle className="chess-piece-eye" cx="46" cy="27" r="1.8" stroke="none" />
+      <path
+        className="chess-piece-detail"
+        d="M35 20c11 3 9 13 8 18M27 31l7-2M29 53h17"
+      />
+      <circle
+        className="chess-piece-eye"
+        cx="46"
+        cy="27"
+        r="1.8"
+        stroke="none"
+      />
     </>
   ),
   b: (
@@ -55,7 +64,7 @@ const SHAPES: Record<PieceSymbol, ReactNode> = {
 export function Piece({ type, color }: PieceProps) {
   return (
     <svg
-      className={`chess-piece chess-piece-${color === 'w' ? 'white' : 'black'}`}
+      className={`chess-piece chess-piece-${color === "w" ? "white" : "black"}`}
       viewBox="0 0 80 80"
       aria-hidden="true"
       focusable="false"

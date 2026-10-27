@@ -1,12 +1,15 @@
-import { useRef } from 'react';
-import { useDialogFocus } from '../hooks/useDialogFocus.ts';
+import { useRef } from "react";
+import { useDialogFocus } from "../hooks/useDialogFocus.ts";
 
 interface ResetProgressDialogProps {
   onCancel: () => void;
   onConfirm: () => void;
 }
 
-export function ResetProgressDialog({ onCancel, onConfirm }: ResetProgressDialogProps) {
+export function ResetProgressDialog({
+  onCancel,
+  onConfirm,
+}: ResetProgressDialogProps) {
   const dialog = useRef<HTMLDivElement>(null);
   useDialogFocus(dialog, onCancel);
   return (
@@ -22,7 +25,8 @@ export function ResetProgressDialog({ onCancel, onConfirm }: ResetProgressDialog
       >
         <h2 id="reset-title">Reset all study progress?</h2>
         <p>
-          This removes attempts, hints, and completed history for every collection in this browser.
+          This removes attempts, hints, and completed history for every
+          collection in this browser.
         </p>
         <div className="dialog-actions">
           <button data-testid="keep-progress" onClick={onCancel}>
