@@ -1,0 +1,11 @@
+title = "Chess Combinations Trainer secret scanning"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Generated output and local development tooling"
+paths = [
+  '''(^|/)(node_modules|dist|coverage|playwright-report|test-results|\.git|\.superpowers|\.agents|\.codex|\.venv|__pycache__)(/|$)''',
+  '''(^|/)docs/superpowers/''',
+]

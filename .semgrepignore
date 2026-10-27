@@ -1,0 +1,14 @@
+# Scan application code, tests, scripts, and configuration; skip generated output.
+.git/
+node_modules/
+dist/
+coverage/
+playwright-report/
+test-results/
+.superpowers/
+.agents/
+.codex/
+.venv/
+__pycache__/
+docs/images/
+docs/superpowers/

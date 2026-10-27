@@ -18,6 +18,10 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "validate:data": "node --experimental-strip-types scripts/validation/validate.ts",
+    "security": "npm run security:audit && npm run security:code && npm run security:secrets",
+    "security:audit": "npm audit --audit-level=high",
+    "security:code": "sh scripts/security/scan.sh code",
+    "security:secrets": "sh scripts/security/scan.sh secrets",
     "verify": "npm run typecheck && npm run lint && npm run format:check && npm test && npm run validate:data && npm run build"
   },
   "dependencies": {
