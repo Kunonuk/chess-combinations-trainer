@@ -1,8 +1,8 @@
-import { expect, type Locator, type Page } from '@playwright/test';
-import type { Square } from 'chess.js';
+import { expect, type Locator, type Page } from "@playwright/test";
+import type { Square } from "chess.js";
 
-export type BoardOrientation = 'white' | 'black';
-export type PromotionPiece = 'q' | 'r' | 'b' | 'n';
+export type BoardOrientation = "white" | "black";
+export type PromotionPiece = "q" | "r" | "b" | "n";
 
 export class ChessBoard {
   constructor(
@@ -11,7 +11,7 @@ export class ChessBoard {
   ) {}
 
   root(): Locator {
-    return this.page.getByTestId('chessboard');
+    return this.page.getByTestId("chessboard");
   }
 
   squares(): Locator {
@@ -19,11 +19,11 @@ export class ChessBoard {
   }
 
   promotionDialog(): Locator {
-    return this.page.getByTestId('promotion-dialog');
+    return this.page.getByTestId("promotion-dialog");
   }
 
   promotionCancel(): Locator {
-    return this.promotionDialog().getByTestId('cancel-promotion');
+    return this.promotionDialog().getByTestId("cancel-promotion");
   }
 
   square(square: Square): Locator {
@@ -67,11 +67,20 @@ export class ChessBoard {
     const start = await this.square(from).boundingBox();
     const end = await this.square(to).boundingBox();
     if (!start || !end)
-      throw new Error(`Cannot drag from ${from} to ${to}: square is not rendered`);
-    await this.page.mouse.move(start.x + start.width / 2, start.y + start.height / 2);
+      throw new Error(
+        `Cannot drag from ${from} to ${to}: square is not rendered`,
+      );
+    await this.page.mouse.move(
+      start.x + start.width / 2,
+      start.y + start.height / 2,
+    );
     await this.page.mouse.down();
     try {
-      await this.page.mouse.move(end.x + end.width / 2, end.y + end.height / 2, { steps: 8 });
+      await this.page.mouse.move(
+        end.x + end.width / 2,
+        end.y + end.height / 2,
+        { steps: 8 },
+      );
     } finally {
       await this.page.mouse.up();
     }
@@ -82,11 +91,17 @@ export class ChessBoard {
     await expect(this.square(from)).toBeVisible();
     const start = await this.square(from).boundingBox();
     const board = await this.root().boundingBox();
-    if (!start || !board) throw new Error(`Cannot drag ${from}: board is not rendered`);
-    await this.page.mouse.move(start.x + start.width / 2, start.y + start.height / 2);
+    if (!start || !board)
+      throw new Error(`Cannot drag ${from}: board is not rendered`);
+    await this.page.mouse.move(
+      start.x + start.width / 2,
+      start.y + start.height / 2,
+    );
     await this.page.mouse.down();
     try {
-      await this.page.mouse.move(board.x + board.width / 2, board.y - 10, { steps: 8 });
+      await this.page.mouse.move(board.x + board.width / 2, board.y - 10, {
+        steps: 8,
+      });
     } finally {
       await this.page.mouse.up();
     }
@@ -95,14 +110,15 @@ export class ChessBoard {
   async navigateFocus(
     from: Square,
     to: Square,
-    orientation: BoardOrientation = 'white',
+    orientation: BoardOrientation = "white",
   ): Promise<void> {
     await expect(this.square(from)).toBeFocused();
     const fileDistance = to.charCodeAt(0) - from.charCodeAt(0);
     const rankDistance = Number(to.charAt(1)) - Number(from.charAt(1));
-    const direction = orientation === 'white' ? 1 : -1;
-    const horizontal = fileDistance * direction > 0 ? 'ArrowRight' : 'ArrowLeft';
-    const vertical = rankDistance * direction > 0 ? 'ArrowUp' : 'ArrowDown';
+    const direction = orientation === "white" ? 1 : -1;
+    const horizontal =
+      fileDistance * direction > 0 ? "ArrowRight" : "ArrowLeft";
+    const vertical = rankDistance * direction > 0 ? "ArrowUp" : "ArrowDown";
     for (let step = 0; step < Math.abs(fileDistance); step++)
       await this.page.keyboard.press(horizontal);
     for (let step = 0; step < Math.abs(rankDistance); step++)
@@ -113,33 +129,33 @@ export class ChessBoard {
   async moveByKeyboard(
     from: Square,
     to: Square,
-    orientation: BoardOrientation = 'white',
+    orientation: BoardOrientation = "white",
   ): Promise<void> {
     await expect(this.square(from)).toBeFocused();
-    await this.page.keyboard.press('Enter');
+    await this.page.keyboard.press("Enter");
     await this.navigateFocus(from, to, orientation);
-    await this.page.keyboard.press('Enter');
+    await this.page.keyboard.press("Enter");
   }
 
   async cancelKeyboardSelection(): Promise<void> {
-    await this.page.keyboard.press('Escape');
+    await this.page.keyboard.press("Escape");
   }
 
   async selectFocusedSquare(): Promise<void> {
-    await this.page.keyboard.press('Enter');
+    await this.page.keyboard.press("Enter");
   }
 
   async position(): Promise<string[]> {
     return this.squares().evaluateAll((cells) =>
-      cells.map((cell) => cell.getAttribute('aria-label') ?? ''),
+      cells.map((cell) => cell.getAttribute("aria-label") ?? ""),
     );
   }
 
   async hintedSquares(): Promise<string[]> {
     return this.squares().evaluateAll((cells) =>
       cells
-        .filter((cell) => cell.getAttribute('data-hint') === 'true')
-        .map((cell) => cell.getAttribute('data-square') ?? ''),
+        .filter((cell) => cell.getAttribute("data-hint") === "true")
+        .map((cell) => cell.getAttribute("data-square") ?? ""),
     );
   }
 }

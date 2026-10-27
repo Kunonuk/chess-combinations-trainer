@@ -1,55 +1,59 @@
-import { describe, it, expect } from 'vitest';
-import { Chess } from 'chess.js';
-import { validatePack } from '../../src/services/puzzleValidation.ts';
-import { fixturePuzzle, packFixture } from '../fixtures/puzzles.ts';
-describe('puzzle pack validation', () => {
-  it('accepts a complete legal, mate-verified pack', () =>
+import { describe, it, expect } from "vitest";
+import { Chess } from "chess.js";
+import { validatePack } from "../../src/services/puzzleValidation.ts";
+import { fixturePuzzle, packFixture } from "../fixtures/puzzles.ts";
+describe("puzzle pack validation", () => {
+  it("accepts a complete legal, mate-verified pack", () =>
     expect(validatePack(packFixture()).puzzles).toHaveLength(1));
-  it.each([null, [], {}, 'bad'])('rejects malformed roots %j', (value) =>
+  it.each([null, [], {}, "bad"])("rejects malformed roots %j", (value) =>
     expect(() => validatePack(value)).toThrow(),
   );
-  it('rejects structurally invalid FEN', () => {
+  it("rejects structurally invalid FEN", () => {
     const p = packFixture();
-    fixturePuzzle(p).fen = 'bad';
+    fixturePuzzle(p).fen = "bad";
     expect(() => validatePack(p)).toThrow(/FEN/i);
   });
-  it('rejects missing kings', () => {
+  it("rejects missing kings", () => {
     const p = packFixture();
-    fixturePuzzle(p).fen = '8/8/8/8/8/8/8/8 w - - 0 1';
+    fixturePuzzle(p).fen = "8/8/8/8/8/8/8/8 w - - 0 1";
     expect(() => validatePack(p)).toThrow(/FEN|king/i);
   });
-  it('rejects side-to-move mismatch', () => {
+  it("rejects side-to-move mismatch", () => {
     const p = packFixture();
-    fixturePuzzle(p).sideToMove = 'white';
+    fixturePuzzle(p).sideToMove = "white";
     expect(() => validatePack(p)).toThrow(/side/i);
   });
-  it('rejects wrong source exercise numbers', () => {
+  it("rejects wrong source exercise numbers", () => {
     const p = packFixture();
     fixturePuzzle(p).source.exercise = 2;
     expect(() => validatePack(p)).toThrow(/exercise/i);
   });
-  it('rejects illegal solution moves', () => {
+  it("rejects illegal solution moves", () => {
     const p = packFixture();
-    fixturePuzzle(p).solutions[0]!.uci = ['d8d1'];
+    fixturePuzzle(p).solutions[0]!.uci = ["d8d1"];
     expect(() => validatePack(p)).toThrow(/legal/i);
   });
-  it('rejects legal moves that do not meet mate objective', () => {
+  it("rejects legal moves that do not meet mate objective", () => {
     const p = packFixture();
-    fixturePuzzle(p).solutions[0] = { uci: ['b8c6'], san: ['Nc6'], explanation: 'Not mate' };
+    fixturePuzzle(p).solutions[0] = {
+      uci: ["b8c6"],
+      san: ["Nc6"],
+      explanation: "Not mate",
+    };
     expect(() => validatePack(p)).toThrow(/mate/i);
   });
-  it('rejects an unverified record', () => {
+  it("rejects an unverified record", () => {
     const fixture = packFixture();
     const p = {
       ...fixture,
       puzzles: fixture.puzzles.map((puzzle) => ({
         ...puzzle,
-        verification: { ...puzzle.verification, status: 'review' },
+        verification: { ...puzzle.verification, status: "review" },
       })),
     };
     expect(() => validatePack(p)).toThrow(/verified/i);
   });
-  it('rejects duplicate or out-of-range ids', () => {
+  it("rejects duplicate or out-of-range ids", () => {
     const p = packFixture();
     p.puzzles.push(fixturePuzzle(p));
     expect(() => validatePack(p)).toThrow(/duplicate/i);
@@ -57,66 +61,72 @@ describe('puzzle pack validation', () => {
     fixturePuzzle(p).id = 21;
     expect(() => validatePack(p)).toThrow(/id/i);
   });
-  it('requires accurate SAN notation', () => {
+  it("requires accurate SAN notation", () => {
     const p = packFixture();
-    fixturePuzzle(p).solutions[0]!.san = ['Qh4'];
+    fixturePuzzle(p).solutions[0]!.san = ["Qh4"];
     expect(() => validatePack(p)).toThrow(/SAN/i);
   });
-  it('rejects positions with the non-moving king already in check', () => {
+  it("rejects positions with the non-moving king already in check", () => {
     const p = packFixture();
     const q = fixturePuzzle(p);
-    q.fen = '4k3/8/8/8/8/8/4R3/4K3 w - - 0 1';
-    q.sideToMove = 'white';
+    q.fen = "4k3/8/8/8/8/8/4R3/4K3 w - - 0 1";
+    q.sideToMove = "white";
     expect(() => validatePack(p)).toThrow(/non-moving/i);
   });
-  it('rejects book packs without private rights and source evidence', () => {
+  it("rejects book packs without private rights and source evidence", () => {
     const p = packFixture();
-    p.collection.kind = 'book';
+    p.collection.kind = "book";
     expect(() => validatePack(p)).toThrow(/book|rights|hash/i);
   });
-  it('rejects solution endings on the opponent turn', () => {
+  it("rejects solution endings on the opponent turn", () => {
     const p = packFixture();
-    fixturePuzzle(p).objective = 'combination';
+    fixturePuzzle(p).objective = "combination";
     fixturePuzzle(p).solutions[0] = {
-      uci: ['b8c6', 'b1c3'],
-      san: ['Nc6', 'Nc3'],
-      explanation: 'Incomplete',
+      uci: ["b8c6", "b1c3"],
+      san: ["Nc6", "Nc3"],
+      explanation: "Incomplete",
     };
     expect(() => validatePack(p)).toThrow(/odd|player/i);
   });
-  it('allows empty book coverage without inventing puzzles', () => {
+  it("allows empty book coverage without inventing puzzles", () => {
     const p = packFixture();
     p.puzzles = [];
     expect(validatePack(p).puzzles).toEqual([]);
   });
-  it('returns a defensive copy', () => {
+  it("returns a defensive copy", () => {
     const p = packFixture();
     const v = validatePack(p);
-    fixturePuzzle(v).hints.push('new');
-    expect(fixturePuzzle(p).hints).not.toContain('new');
+    fixturePuzzle(v).hints.push("new");
+    expect(fixturePuzzle(p).hints).not.toContain("new");
   });
-  it('does not mistake a draw claim for a verified draw', () => {
+  it("does not mistake a draw claim for a verified draw", () => {
     const p = packFixture();
-    fixturePuzzle(p).objective = 'draw';
-    fixturePuzzle(p).solutions[0] = { uci: ['b8c6'], san: ['Nc6'], explanation: 'Not a draw' };
+    fixturePuzzle(p).objective = "draw";
+    fixturePuzzle(p).solutions[0] = {
+      uci: ["b8c6"],
+      san: ["Nc6"],
+      explanation: "Not a draw",
+    };
     expect(() => validatePack(p)).toThrow(/draw/i);
   });
-  it('chess library independently recognizes fixture mate', () => {
+  it("chess library independently recognizes fixture mate", () => {
     const p = fixturePuzzle(packFixture());
     const c = new Chess(p.fen);
-    c.move('d8h4');
+    c.move("d8h4");
     expect(c.isCheckmate()).toBe(true);
   });
 });
 it.each([
-  ['4k3/8/8/4P3/8/8/8/4K3 w - d6 0 1', 'e5d6', 'exd6'],
-  ['4k3/8/8/8/8/8/P7/4K3 w K - 0 1', 'e1g1', 'O-O'],
-])('rejects impossible special rights: %s', (fen, uci, san) => {
+  ["4k3/8/8/4P3/8/8/8/4K3 w - d6 0 1", "e5d6", "exd6"],
+  ["4k3/8/8/8/8/8/P7/4K3 w K - 0 1", "e1g1", "O-O"],
+])("rejects impossible special rights: %s", (fen, uci, san) => {
   const p = packFixture();
   const q = fixturePuzzle(p);
   q.fen = fen;
-  q.sideToMove = 'white';
-  q.objective = 'combination';
-  q.solutions = [{ uci: [uci], san: [san], explanation: 'Invalid special metadata' }];
+  q.sideToMove = "white";
+  q.objective = "combination";
+  q.solutions = [
+    { uci: [uci], san: [san], explanation: "Invalid special metadata" },
+  ];
   expect(() => validatePack(p)).toThrow(/en passant|castling/i);
 });

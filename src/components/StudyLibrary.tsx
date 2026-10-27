@@ -1,6 +1,6 @@
-import { bookInfo } from '../data/catalogue.ts';
-import type { Progress } from '../services/progress.ts';
-import type { Puzzle, PuzzlePack } from '../types/puzzle.ts';
+import { bookInfo } from "../data/catalogue.ts";
+import type { Progress } from "../services/progress.ts";
+import type { Puzzle, PuzzlePack } from "../types/puzzle.ts";
 
 interface StudyLibraryProps {
   packs: readonly PuzzlePack[];
@@ -21,13 +21,15 @@ export function StudyLibrary({
   onImport,
   onReset,
 }: StudyLibraryProps) {
-  const bookPack = packs.find((pack) => pack.collection.kind === 'book');
+  const bookPack = packs.find((pack) => pack.collection.kind === "book");
   const bookCount = bookPack?.puzzles.length ?? 0;
-  const scoredCount = pack?.puzzles.filter((puzzle) => puzzle.objective !== 'analysis').length ?? 0;
+  const scoredCount =
+    pack?.puzzles.filter((puzzle) => puzzle.objective !== "analysis").length ??
+    0;
   const completed =
     pack?.puzzles.filter(
       (puzzle) =>
-        puzzle.objective !== 'analysis' &&
+        puzzle.objective !== "analysis" &&
         progress.collections[pack.collection.id]?.[puzzle.id]?.completed,
     ).length ?? 0;
   return (
@@ -47,7 +49,9 @@ export function StudyLibrary({
             data-testid="collection-select"
             value={pack.collection.id}
             onChange={(e) => {
-              const next = packs.find((p) => p.collection.id === e.target.value);
+              const next = packs.find(
+                (p) => p.collection.id === e.target.value,
+              );
               if (next?.puzzles[0]) onNavigate(next, next.puzzles[0].id);
             }}
           >
@@ -55,27 +59,27 @@ export function StudyLibrary({
               .filter((p) => p.puzzles.length)
               .map((p) => (
                 <option key={p.collection.id} value={p.collection.id}>
-                  {p.collection.kind === 'practice'
-                    ? 'Lichess practice · separate collection'
+                  {p.collection.kind === "practice"
+                    ? "Lichess practice · separate collection"
                     : p.collection.title}
                 </option>
               ))}
           </select>
           <div className={`source-card ${pack.collection.kind}`}>
             <strong>
-              {pack.collection.kind === 'book'
-                ? 'Private book collection'
-                : 'Separate Lichess practice'}
+              {pack.collection.kind === "book"
+                ? "Private book collection"
+                : "Separate Lichess practice"}
             </strong>
             <p>
-              {pack.collection.kind === 'book'
+              {pack.collection.kind === "book"
                 ? `${pack.puzzles.length} of ${bookInfo.total} book exercises available.`
-                : 'These CC0 puzzles are independent practice exercises. They are not exercises from the book.'}
+                : "These CC0 puzzles are independent practice exercises. They are not exercises from the book."}
             </p>
-            <span className="source-dot" />{' '}
-            {pack.collection.kind === 'book'
-              ? 'Reviewed diagrams and checked training lines'
-              : 'Attributed CC0 source'}
+            <span className="source-dot" />{" "}
+            {pack.collection.kind === "book"
+              ? "Reviewed diagrams and checked training lines"
+              : "Attributed CC0 source"}
           </div>
           {puzzle && (
             <>
@@ -93,16 +97,16 @@ export function StudyLibrary({
                   if (next) onNavigate(pack, next.id);
                 }}
               >
-                {Array.from(new Set(pack.puzzles.map((p) => `${p.stage}|${p.chapter}`))).map(
-                  (key) => {
-                    const [stage, chapter] = key.split('|');
-                    return (
-                      <option key={key} value={key}>
-                        Stage {stage} · {chapter}
-                      </option>
-                    );
-                  },
-                )}
+                {Array.from(
+                  new Set(pack.puzzles.map((p) => `${p.stage}|${p.chapter}`)),
+                ).map((key) => {
+                  const [stage, chapter] = key.split("|");
+                  return (
+                    <option key={key} value={key}>
+                      Stage {stage} · {chapter}
+                    </option>
+                  );
+                })}
               </select>
               <label className="field-label" htmlFor="exercise">
                 Exercise
@@ -113,7 +117,10 @@ export function StudyLibrary({
                 value={puzzle.id}
                 onChange={(e) => onNavigate(pack, Number(e.target.value))}
               >
-                {Array.from({ length: pack.collection.total }, (_, i) => i + 1).map((id) => {
+                {Array.from(
+                  { length: pack.collection.total },
+                  (_, i) => i + 1,
+                ).map((id) => {
                   const exercise = pack.puzzles.find((p) => p.id === id);
                   return (
                     <option
@@ -124,12 +131,13 @@ export function StudyLibrary({
                     >
                       #{id}
                       {exercise
-                        ? exercise.objective === 'analysis'
-                          ? ' · source note'
-                          : progress.collections[pack.collection.id]?.[id]?.completed
-                            ? ' · completed'
-                            : ''
-                        : ' · unavailable'}
+                        ? exercise.objective === "analysis"
+                          ? " · source note"
+                          : progress.collections[pack.collection.id]?.[id]
+                                ?.completed
+                            ? " · completed"
+                            : ""
+                        : " · unavailable"}
                     </option>
                   );
                 })}
@@ -148,23 +156,30 @@ export function StudyLibrary({
               aria-label="Collection progress"
             />
             <div className="chapter-progress">
-              {Array.from(new Set(pack.puzzles.map((p) => `${p.stage}|${p.chapter}`))).map(
-                (key) => {
-                  const rows = pack.puzzles.filter((p) => `${p.stage}|${p.chapter}` === key);
-                  const scored = rows.filter((p) => p.objective !== 'analysis');
-                  const done = scored.filter(
-                    (p) => progress.collections[pack.collection.id]?.[p.id]?.completed,
-                  ).length;
-                  return (
-                    <div key={key}>
-                      <span>
-                        Stage {rows[0]?.stage} · {rows[0]?.chapter}
-                      </span>
-                      <b>{scored.length ? `${done}/${scored.length}` : 'Study only'}</b>
-                    </div>
-                  );
-                },
-              )}
+              {Array.from(
+                new Set(pack.puzzles.map((p) => `${p.stage}|${p.chapter}`)),
+              ).map((key) => {
+                const rows = pack.puzzles.filter(
+                  (p) => `${p.stage}|${p.chapter}` === key,
+                );
+                const scored = rows.filter((p) => p.objective !== "analysis");
+                const done = scored.filter(
+                  (p) =>
+                    progress.collections[pack.collection.id]?.[p.id]?.completed,
+                ).length;
+                return (
+                  <div key={key}>
+                    <span>
+                      Stage {rows[0]?.stage} · {rows[0]?.chapter}
+                    </span>
+                    <b>
+                      {scored.length
+                        ? `${done}/${scored.length}`
+                        : "Study only"}
+                    </b>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </>
@@ -174,8 +189,8 @@ export function StudyLibrary({
           Book coverage <span>{bookCount} / 719</span>
         </summary>
         <p>
-          Available positions can be opened. Source errors are marked as unscored studies.
-          Unavailable exercises stay visible in the catalogue.
+          Available positions can be opened. Source errors are marked as
+          unscored studies. Unavailable exercises stay visible in the catalogue.
         </p>
         <label className="field-label" htmlFor="book-catalogue">
           All 719 book exercises
@@ -183,7 +198,7 @@ export function StudyLibrary({
         <select
           id="book-catalogue"
           data-testid="book-catalogue"
-          value={pack?.collection.kind === 'book' ? (puzzle?.id ?? '') : ''}
+          value={pack?.collection.kind === "book" ? (puzzle?.id ?? "") : ""}
           onChange={(e) => {
             if (bookPack) onNavigate(bookPack, Number(e.target.value));
           }}
@@ -199,7 +214,9 @@ export function StudyLibrary({
               disabled={!bookPack?.puzzles.some((p) => p.id === id)}
             >
               #{id}
-              {bookPack?.puzzles.some((p) => p.id === id) ? '' : ' · unavailable'}
+              {bookPack?.puzzles.some((p) => p.id === id)
+                ? ""
+                : " · unavailable"}
             </option>
           ))}
         </select>
@@ -213,7 +230,7 @@ export function StudyLibrary({
           accept=".json,application/json"
           onChange={(e) => {
             const file = e.target.files?.[0];
-            e.target.value = '';
+            e.target.value = "";
             if (file) void onImport(file);
           }}
         />

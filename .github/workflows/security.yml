@@ -7,14 +7,14 @@ on:
     branches: [main]
   merge_group:
   schedule:
-    - cron: '17 8 * * 1'
+    - cron: "17 8 * * 1"
   workflow_dispatch:
 
 permissions:
   contents: read
 
 env:
-  CI: 'true'
+  CI: "true"
 
 concurrency:
   group: security-${{ github.workflow }}-${{ github.ref }}

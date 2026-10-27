@@ -1,9 +1,16 @@
-import { Chess, type PieceSymbol, type Square } from 'chess.js';
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
-import { Piece } from './Piece';
-import '../board.css';
+import { Chess, type PieceSymbol, type Square } from "chess.js";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type PointerEvent,
+} from "react";
+import { Piece } from "./Piece";
+import "../board.css";
 
-export type BoardOrientation = 'white' | 'black';
+export type BoardOrientation = "white" | "black";
 export interface ChessBoardProps {
   fen: string;
   orientation?: BoardOrientation;
@@ -13,19 +20,19 @@ export interface ChessBoardProps {
   hintSquare?: Square | null;
 }
 
-const FILES = 'abcdefgh';
+const FILES = "abcdefgh";
 const PIECE_NAMES: Record<PieceSymbol, string> = {
-  p: 'pawn',
-  n: 'knight',
-  b: 'bishop',
-  r: 'rook',
-  q: 'queen',
-  k: 'king',
+  p: "pawn",
+  n: "knight",
+  b: "bishop",
+  r: "rook",
+  q: "queen",
+  k: "king",
 };
 
 export function ChessBoard({
   fen,
-  orientation = 'white',
+  orientation = "white",
   onMove,
   disabled = false,
   lastMove = null,
@@ -36,7 +43,9 @@ export function ChessBoard({
     fen: string;
     square: Square;
   } | null>(null);
-  const [focusedSquare, setFocusedSquare] = useState<Square>(orientation === 'white' ? 'a8' : 'h1');
+  const [focusedSquare, setFocusedSquare] = useState<Square>(
+    orientation === "white" ? "a8" : "h1",
+  );
   const cells = useRef(new Map<Square, HTMLButtonElement>());
   const board = useRef<HTMLDivElement>(null);
   const suppressClick = useRef(false);
@@ -49,18 +58,31 @@ export function ChessBoard({
     fen: string;
     orientation: BoardOrientation;
   } | null>(null);
-  const selected = !disabled && selection?.fen === fen ? selection.square : null;
-  const files = orientation === 'white' ? [...FILES] : [...FILES].reverse();
-  const ranks = orientation === 'white' ? [8, 7, 6, 5, 4, 3, 2, 1] : [1, 2, 3, 4, 5, 6, 7, 8];
+  const selected =
+    !disabled && selection?.fen === fen ? selection.square : null;
+  const files = orientation === "white" ? [...FILES] : [...FILES].reverse();
+  const ranks =
+    orientation === "white"
+      ? [8, 7, 6, 5, 4, 3, 2, 1]
+      : [1, 2, 3, 4, 5, 6, 7, 8];
 
   useEffect(() => {
     drag.current = null;
     setSelection(null);
   }, [fen, disabled, orientation]);
 
-  function startPointer(event: PointerEvent<HTMLButtonElement>, square: Square) {
+  function startPointer(
+    event: PointerEvent<HTMLButtonElement>,
+    square: Square,
+  ) {
     suppressClick.current = false;
-    if (disabled || event.pointerType === 'touch' || event.button !== 0 || !event.isPrimary) return;
+    if (
+      disabled ||
+      event.pointerType === "touch" ||
+      event.button !== 0 ||
+      !event.isPrimary
+    )
+      return;
     if (position.get(square)?.color !== position.turn()) return;
     drag.current = {
       from: square,
@@ -91,7 +113,8 @@ export function ChessBoard({
     if (!active.dragged) return;
     suppressClick.current = true;
     setSelection(null);
-    if (disabled || active.fen !== fen || active.orientation !== orientation) return;
+    if (disabled || active.fen !== fen || active.orientation !== orientation)
+      return;
     const rect = board.current?.getBoundingClientRect();
     if (!rect || rect.width <= 0 || rect.height <= 0) return;
     const column = Math.floor(((event.clientX - rect.left) / rect.width) * 8);
@@ -118,13 +141,16 @@ export function ChessBoard({
     }
   }
 
-  function handleKeyDown(event: KeyboardEvent<HTMLButtonElement>, square: Square) {
-    if (event.key === 'Escape') {
+  function handleKeyDown(
+    event: KeyboardEvent<HTMLButtonElement>,
+    square: Square,
+  ) {
+    if (event.key === "Escape") {
       event.preventDefault();
       cancelPointer();
       return;
     }
-    const direction = orientation === 'white' ? 1 : -1;
+    const direction = orientation === "white" ? 1 : -1;
     const offsets: Record<string, [number, number]> = {
       ArrowUp: [0, direction],
       ArrowDown: [0, -direction],
@@ -134,21 +160,29 @@ export function ChessBoard({
     const offset = offsets[event.key];
     if (!offset) return;
     event.preventDefault();
-    const file = FILES.indexOf(square[0] ?? '') + offset[0];
+    const file = FILES.indexOf(square[0] ?? "") + offset[0];
     const rank = Number(square[1]) + offset[1];
     if (file < 0 || file > 7 || rank < 1 || rank > 8) return;
     cells.current.get(`${FILES[file]}${rank}` as Square)?.focus();
   }
 
   const fileCoordinates = (
-    <div className="chess-board-files" data-testid="file-coordinates" aria-hidden="true">
+    <div
+      className="chess-board-files"
+      data-testid="file-coordinates"
+      aria-hidden="true"
+    >
       {files.map((file) => (
         <span key={file}>{file}</span>
       ))}
     </div>
   );
   const rankCoordinates = (
-    <div className="chess-board-ranks" data-testid="rank-coordinates" aria-hidden="true">
+    <div
+      className="chess-board-ranks"
+      data-testid="rank-coordinates"
+      aria-hidden="true"
+    >
       {ranks.map((rank) => (
         <span key={rank}>{rank}</span>
       ))}
@@ -157,8 +191,12 @@ export function ChessBoard({
 
   return (
     <div className="chess-board-frame">
-      <div className="chess-board-edge chess-board-edge-top">{fileCoordinates}</div>
-      <div className="chess-board-edge chess-board-edge-left">{rankCoordinates}</div>
+      <div className="chess-board-edge chess-board-edge-top">
+        {fileCoordinates}
+      </div>
+      <div className="chess-board-edge chess-board-edge-left">
+        {rankCoordinates}
+      </div>
       <div
         ref={board}
         data-testid="chessboard"
@@ -176,8 +214,8 @@ export function ChessBoard({
               const square = `${file}${rank}` as Square;
               const piece = position.get(square);
               const pieceName = piece
-                ? `${piece.color === 'w' ? 'White' : 'Black'} ${PIECE_NAMES[piece.type]}`
-                : 'empty';
+                ? `${piece.color === "w" ? "White" : "Black"} ${PIECE_NAMES[piece.type]}`
+                : "empty";
               const light = (FILES.indexOf(file) + rank) % 2 === 0;
               return (
                 <button
@@ -188,13 +226,15 @@ export function ChessBoard({
                   }}
                   type="button"
                   role="gridcell"
-                  className={`chess-square ${light ? 'chess-square-light' : 'chess-square-dark'}`}
+                  className={`chess-square ${light ? "chess-square-light" : "chess-square-dark"}`}
                   aria-label={`${square} ${pieceName}`}
                   aria-selected={selected === square}
                   aria-disabled={disabled}
                   data-square={square}
                   data-testid={`square-${square}`}
-                  data-last-move={lastMove?.from === square || lastMove?.to === square}
+                  data-last-move={
+                    lastMove?.from === square || lastMove?.to === square
+                  }
                   data-hint={hintSquare === square}
                   tabIndex={focusedSquare === square ? 0 : -1}
                   onFocus={() => setFocusedSquare(square)}
@@ -215,8 +255,12 @@ export function ChessBoard({
           </div>
         ))}
       </div>
-      <div className="chess-board-edge chess-board-edge-right">{rankCoordinates}</div>
-      <div className="chess-board-edge chess-board-edge-bottom">{fileCoordinates}</div>
+      <div className="chess-board-edge chess-board-edge-right">
+        {rankCoordinates}
+      </div>
+      <div className="chess-board-edge chess-board-edge-bottom">
+        {fileCoordinates}
+      </div>
     </div>
   );
 }

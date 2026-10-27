@@ -3,7 +3,7 @@
 }
 body {
   margin: 0;
-  font-family: 'DM Sans', Arial, sans-serif;
+  font-family: "DM Sans", Arial, sans-serif;
   color: #24382d;
 }
 button,
@@ -159,7 +159,7 @@ p {
   margin-top: 0;
 }
 h1 {
-  font-family: 'Libre Caslon Display', Georgia, serif;
+  font-family: "Libre Caslon Display", Georgia, serif;
   font-size: clamp(32px, 3.6vw, 49px);
   font-weight: 400;
   letter-spacing: -0.6px;
@@ -505,7 +505,7 @@ footer {
 }
 footer span {
   font:
-    8px 'DM Sans',
+    8px "DM Sans",
     Arial,
     sans-serif;
   letter-spacing: 1px;

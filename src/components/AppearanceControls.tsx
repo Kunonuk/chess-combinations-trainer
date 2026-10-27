@@ -1,4 +1,4 @@
-import type { Appearance, BoardTheme } from '../hooks/useAppearance.ts';
+import type { Appearance, BoardTheme } from "../hooks/useAppearance.ts";
 
 interface AppearanceControlsProps extends Appearance {
   onThemeChange: (theme: BoardTheme) => void;
@@ -14,16 +14,19 @@ export function AppearanceControls({
   return (
     <header className="site-header">
       <a className="wordmark" href="#main">
-        <span aria-hidden="true">♞</span> COMBINATIONS <small>THE STUDY ROOM</small>
+        <span aria-hidden="true">♞</span> COMBINATIONS{" "}
+        <small>THE STUDY ROOM</small>
       </a>
       <div className="header-actions">
         <label className="theme-label">
-          Board{' '}
+          Board{" "}
           <select
             data-testid="board-theme-select"
             aria-label="Board theme"
             value={boardTheme}
-            onChange={(e) => onThemeChange(e.target.value === 'walnut' ? 'walnut' : 'forest')}
+            onChange={(e) =>
+              onThemeChange(e.target.value === "walnut" ? "walnut" : "forest")
+            }
           >
             <option value="forest">Forest</option>
             <option value="walnut">Walnut</option>
@@ -33,9 +36,9 @@ export function AppearanceControls({
           data-testid="appearance-toggle"
           className="icon-button"
           onClick={onToggle}
-          aria-label={dark ? 'Use light appearance' : 'Use dark appearance'}
+          aria-label={dark ? "Use light appearance" : "Use dark appearance"}
         >
-          {dark ? '☀' : '☾'}
+          {dark ? "☀" : "☾"}
         </button>
       </div>
     </header>

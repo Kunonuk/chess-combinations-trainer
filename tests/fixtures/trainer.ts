@@ -1,5 +1,5 @@
-import { expect, test as base, type ConsoleMessage } from '@playwright/test';
-import { TrainerPage } from '../pages/TrainerPage.ts';
+import { expect, test as base, type ConsoleMessage } from "@playwright/test";
+import { TrainerPage } from "../pages/TrainerPage.ts";
 
 interface TrainerFixtures {
   trainer: TrainerPage;
@@ -20,22 +20,22 @@ export const test = base.extend<TrainerFixtures>({
       const errors: string[] = [];
       const onPageError = (error: Error) => errors.push(error.message);
       const onConsole = (message: ConsoleMessage) => {
-        if (message.type() === 'error') errors.push(message.text());
+        if (message.type() === "error") errors.push(message.text());
       };
-      page.on('pageerror', onPageError);
-      page.on('console', onConsole);
+      page.on("pageerror", onPageError);
+      page.on("console", onConsole);
       try {
         await use(errors);
       } finally {
-        page.off('pageerror', onPageError);
-        page.off('console', onConsole);
+        page.off("pageerror", onPageError);
+        page.off("console", onConsole);
         if (errors.length) {
-          await testInfo.attach('browser-errors', {
-            body: errors.join('\n'),
-            contentType: 'text/plain',
+          await testInfo.attach("browser-errors", {
+            body: errors.join("\n"),
+            contentType: "text/plain",
           });
         }
-        expect(errors, 'No uncaught browser or console errors').toEqual([]);
+        expect(errors, "No uncaught browser or console errors").toEqual([]);
       }
     },
     { auto: true },

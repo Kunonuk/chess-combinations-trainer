@@ -23,7 +23,10 @@
           "explanation": "Use forcing checks to leave the king without an escape."
         }
       ],
-      "hints": ["Keep the enemy king under pressure.", "Consider the piece on a2."],
+      "hints": [
+        "Keep the enemy king under pressure.",
+        "Consider the piece on a2."
+      ],
       "source": {
         "book": "Lichess open puzzle database · official sample",
         "exercise": 1,
@@ -51,7 +54,10 @@
           "explanation": "Follow the forcing line from this Lichess puzzle; the sequence wins a decisive advantage."
         }
       ],
-      "hints": ["Look for forcing moves and unprotected pieces.", "Consider the piece on e8."],
+      "hints": [
+        "Look for forcing moves and unprotected pieces.",
+        "Consider the piece on e8."
+      ],
       "source": {
         "book": "Lichess open puzzle database · official sample",
         "exercise": 2,
@@ -79,7 +85,10 @@
           "explanation": "Follow the forcing line from this Lichess puzzle; the sequence wins a decisive advantage."
         }
       ],
-      "hints": ["Look for forcing moves and unprotected pieces.", "Consider the piece on a5."],
+      "hints": [
+        "Look for forcing moves and unprotected pieces.",
+        "Consider the piece on a5."
+      ],
       "source": {
         "book": "Lichess open puzzle database · official sample",
         "exercise": 3,
@@ -107,7 +116,10 @@
           "explanation": "Follow the forcing line from this Lichess puzzle; the sequence wins a decisive advantage."
         }
       ],
-      "hints": ["Look for forcing moves and unprotected pieces.", "Consider the piece on e1."],
+      "hints": [
+        "Look for forcing moves and unprotected pieces.",
+        "Consider the piece on e1."
+      ],
       "source": {
         "book": "Lichess open puzzle database · official sample",
         "exercise": 4,

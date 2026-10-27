@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
-import { saveProgress, type Progress } from '../services/progress.ts';
+import { useEffect, useRef, useState } from "react";
+import { saveProgress, type Progress } from "../services/progress.ts";
 
-export type SaveNotice = 'report' | 'preserve';
+export type SaveNotice = "report" | "preserve";
 
 export function useStudyProgress(
   initialProgress: Progress,
@@ -9,15 +9,18 @@ export function useStudyProgress(
 ) {
   const [{ progress, saveNotice }, setState] = useState({
     progress: initialProgress,
-    saveNotice: 'report' as SaveNotice,
+    saveNotice: "report" as SaveNotice,
   });
   const persisted = useRef(initialProgress);
 
   function updateProgress(
     update: (previous: Progress) => Progress,
-    saveNotice: SaveNotice = 'report',
+    saveNotice: SaveNotice = "report",
   ): void {
-    setState((previous) => ({ progress: update(previous.progress), saveNotice }));
+    setState((previous) => ({
+      progress: update(previous.progress),
+      saveNotice,
+    }));
   }
 
   useEffect(() => {
@@ -28,10 +31,10 @@ export function useStudyProgress(
     try {
       error = saveProgress(window.localStorage, progress);
     } catch {
-      error = 'Progress could not be saved. You can continue in this session.';
+      error = "Progress could not be saved. You can continue in this session.";
     }
     // Import results already explain whether the imported pack could be retained.
-    if (error && saveNotice === 'report') onSaveError(error);
+    if (error && saveNotice === "report") onSaveError(error);
   }, [progress, saveNotice, onSaveError]);
 
   return { progress, updateProgress };

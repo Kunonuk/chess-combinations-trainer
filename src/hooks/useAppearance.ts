@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
-const APPEARANCE_KEY = 'combinations.appearance.v1';
-export type BoardTheme = 'forest' | 'walnut';
+const APPEARANCE_KEY = "combinations.appearance.v1";
+export type BoardTheme = "forest" | "walnut";
 export interface Appearance {
   dark: boolean;
   boardTheme: BoardTheme;
@@ -9,14 +9,19 @@ export interface Appearance {
 
 function readAppearance(): Appearance {
   try {
-    const value: unknown = JSON.parse(window.localStorage.getItem(APPEARANCE_KEY) ?? 'null');
-    const object = value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
+    const value: unknown = JSON.parse(
+      window.localStorage.getItem(APPEARANCE_KEY) ?? "null",
+    );
+    const object =
+      value && typeof value === "object"
+        ? (value as Record<string, unknown>)
+        : {};
     return {
       dark: object.dark === true,
-      boardTheme: object.boardTheme === 'walnut' ? 'walnut' : 'forest',
+      boardTheme: object.boardTheme === "walnut" ? "walnut" : "forest",
     };
   } catch {
-    return { dark: false, boardTheme: 'forest' };
+    return { dark: false, boardTheme: "forest" };
   }
 }
 
